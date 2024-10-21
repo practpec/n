@@ -1,0 +1,44 @@
+[build-system]
+    requires = [ "setuptools", "wheel" ]
+    build-backend = "setuptools.build_meta"
+
+[project]
+    name = "IA"
+    description = "UMinho's 2024/25 Artificial Intelligence class assignment"
+    version = "0.0.1"
+
+    authors = [
+        { name = "Ana Carolina", email = "a104188@alunos.uminho.pt" },
+        { name = "Humberto Gomes", email = "a104348@alunos.uminho.pt" },
+        { name = "João Torres", email = "a95748@alunos.uminho.pt" },
+        { name = "José Lopes", email = "a104541@alunos.uminho.pt" },
+        { name = "José Matos", email = "a100612@alunos.uminho.pt" },
+    ]
+
+    readme = "README.md"
+    license = { file = "LICENSE" }
+
+    requires-python = ">=3.12"
+
+    keywords = [ "ai", "graph", "algorithms" ]
+    classifiers = [
+        "Development Status :: 2 - Pre-Alpha",
+        "Environment :: Console",
+        "Intended Audience :: Education",
+        "License :: OSI Approved :: Apache Software License",
+        "Natural Language :: English",
+        "Programming Langunage :: Python",
+        "Programming Langunage :: Python :: 3",
+        "Topic :: Education",
+        "Topic :: Scientific/Engineering :: Artificial Intelligence"
+    ]
+
+    dependencies = []
+
+[project.urls]
+    Homepage = "https://github.com/voidbert/IA"
+    Repository = "https://github.com/voidbert/IA"
+    "Bug Tracker" = "https://github.com/voidbert/IA/issues"
+
+[tool.mypy]
+    disallow_untyped_defs = true
