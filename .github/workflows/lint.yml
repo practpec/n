@@ -1,0 +1,17 @@
+name: Lint
+on:
+    pull_request:
+        paths:
+            - '.github/workflows/**'
+            - 'trabalho-pratico/IA/**'
+            - 'trabalho-pratico/pyproject.toml'
+            - 'trabalho-pratico/setup.py'
+jobs:
+    lint:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
+
+            - run: pip install pylint mypy .
+            - run: pylint IA
+            - run: mypy IA
