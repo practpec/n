@@ -1,11 +1,5 @@
 name: Lint
-on:
-    pull_request:
-        paths:
-            - '.github/workflows/**'
-            - 'trabalho-pratico/IA/**'
-            - 'trabalho-pratico/pyproject.toml'
-            - 'trabalho-pratico/setup.py'
+on: pull_request
 jobs:
     lint:
         runs-on: ubuntu-latest
