@@ -12,6 +12,9 @@ py-version=3.12
 # Discover python modules and packages in the file system subtree.
 recursive=yes
 
+# Make pygame work
+extension-pkg-whitelist=pygame
+
 [BASIC]
 
 # Naming style matching correct class attribute names.

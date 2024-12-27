@@ -33,7 +33,14 @@
         "Topic :: Scientific/Engineering :: Artificial Intelligence"
     ]
 
-    dependencies = []
+    dependencies = [
+        "bs4",
+        "lxml",
+        "pygame",
+        "requests",
+        "types-beautifulsoup4",
+        "types-requests"
+    ]
 
 [project.urls]
     Homepage = "https://github.com/voidbert/IA"
