@@ -16,12 +16,6 @@
 #
 # -------------------------------------------------------------------------------------------------
 
-from IA.Map import Map
-from IA.UI import UI
-
-def main() -> None:
-    pmap: Map = Map('Braga (São Vítor)')
-    UI(pmap)
-
-if __name__ == '__main__':
-    main()
+class Graph:
+    def __init__(self) -> None:
+        self.edges: dict[int, dict[int, float]] = {}
