@@ -25,9 +25,11 @@ from IA.Map import Map, Point
 WINDOW_WIDTH = 800
 WINDOW_HEIGHT = 600
 
+# pylint: disable-next=too-many-instance-attributes
 class UI:
     def __init__(self, pmap: Map) -> None:
         self.map = pmap
+        self.showing_weather = False
 
         self.generate_initial_projection(pmap)
 
@@ -67,7 +69,13 @@ class UI:
                     source = self.point_to_screen(self.map.coordinates[edge_source])
                     target = self.point_to_screen(self.map.coordinates[edge_target])
 
-                    pygame.draw.line(self.window, (255, 255, 255), source, target)
+                    if self.showing_weather:
+                        weather = self.map.weather[(edge_source, edge_target)] * 255
+                        edge_color = (255, round(255 - weather), round(255 - weather))
+                    else:
+                        edge_color = (255, 255, 255)
+
+                    pygame.draw.line(self.window, edge_color, source, target)
 
             pygame.display.flip()
 
@@ -92,6 +100,8 @@ class UI:
                 self.zoom *= zoom_factor
             elif event.key == pygame.K_MINUS:
                 self.zoom /= zoom_factor
+            elif event.key == pygame.K_w:
+                self.showing_weather = not self.showing_weather
 
     def point_to_screen(self, p: Point) -> tuple[float, float]:
         initial_x = (p.x - self.translatex) * self.scale

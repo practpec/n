@@ -20,6 +20,7 @@ import math
 from typing import NamedTuple
 
 from bs4 import BeautifulSoup
+from perlin_noise import PerlinNoise
 import requests
 
 from IA.Graph import Graph
@@ -34,11 +35,13 @@ class Map(Graph):
     def __init__(self, location: str) -> None:
         super().__init__()
         self.coordinates: dict[int, Point] = {}
+        self.weather: dict[tuple[int, int], float] = {}
 
         xml_text = self.cached_request(location)
         soup = BeautifulSoup(xml_text, 'xml')
         self.add_nodes_in_xml(soup)
         self.add_ways_in_xml(soup)
+        self.generate_weather()
 
     def cached_request(self, location: str) -> str:
         try:
@@ -84,3 +87,26 @@ class Map(Graph):
 
                 self.edges[ref1][ref2] = cost
                 i += 1
+
+    def generate_weather(self) -> None:
+        noise = PerlinNoise(octaves=2, seed=70)
+
+        map_width = \
+            max(point.x for point in self.coordinates.values()) - \
+            min(point.x for point in self.coordinates.values())
+        map_height = \
+            max(point.y for point in self.coordinates.values()) - \
+            min(point.y for point in self.coordinates.values())
+
+        for source, targets in self.edges.items():
+            for target in targets:
+                x = self.coordinates[source].x / map_width
+                y = self.coordinates[source].y / map_height
+                weather_source = noise((x, y)) * 3
+
+                x = self.coordinates[target].x / map_width
+                y = self.coordinates[target].y / map_height
+                weather_target = noise((x, y)) * 3
+
+                weather_edge = max(0.0, min((weather_source + weather_target) / 2, 1.0))
+                self.weather[(source, target)] = weather_edge

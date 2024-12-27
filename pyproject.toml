@@ -36,6 +36,7 @@
     dependencies = [
         "bs4",
         "lxml",
+        "perlin-noise",
         "pygame",
         "requests",
         "types-beautifulsoup4",
@@ -49,3 +50,4 @@
 
 [tool.mypy]
     disallow_untyped_defs = true
+    ignore_missing_imports = true
