@@ -27,7 +27,6 @@ from IA.Problem import EventSequence
 WINDOW_WIDTH = 800
 WINDOW_HEIGHT = 600
 
-# pylint: disable-next=too-many-instance-attributes
 class UI:
     def __init__(self, pmap: Map, seq: EventSequence) -> None:
         self.map = pmap
@@ -84,6 +83,20 @@ class UI:
             sys.exit(0)
         elif event.type == pygame.MOUSEWHEEL:
             self.zoom *= zoom_factor if event.y > 0 else 1 / zoom_factor
+        elif event.type == pygame.MOUSEBUTTONDOWN and pygame.mouse.get_pressed()[0]:
+            mx, my = pygame.mouse.get_pos()
+            lowest_distance_node = next(iter(self.map.edges))
+            lowest_distance_sq = float('inf')
+            for node in self.map.edges:
+                x, y = self.point_to_screen(self.map.coordinates[node])
+                dist_sq = (x - mx) ** 2 + (y - my) ** 2
+
+                if dist_sq < lowest_distance_sq:
+                    lowest_distance_node = node
+                    lowest_distance_sq = dist_sq
+
+            print(f'https://www.openstreetmap.org/node/{lowest_distance_node}')
+
         elif event.type == pygame.KEYDOWN:
             if event.key == pygame.K_LEFT:
                 self.translatex -= self.movement_unit / self.zoom
