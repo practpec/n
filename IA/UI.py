@@ -20,21 +20,26 @@ import sys
 
 import pygame
 
+from IA.Graph import SearchResults
 from IA.Map import Map, Point
+from IA.Problem import EventSequence
 
 WINDOW_WIDTH = 800
 WINDOW_HEIGHT = 600
 
 # pylint: disable-next=too-many-instance-attributes
 class UI:
-    def __init__(self, pmap: Map) -> None:
+    def __init__(self, pmap: Map, seq: EventSequence) -> None:
         self.map = pmap
+        self.seq = seq
+        self.seq_position = 0
         self.showing_weather = False
 
         self.generate_initial_projection(pmap)
 
         pygame.init()
         self.window = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
+        pygame.display.set_caption(self.seq[self.seq_position][0])
         self.game_loop()
 
     def generate_initial_projection(self, pmap: Map) -> None:
@@ -63,19 +68,11 @@ class UI:
                 self.handle_event(event)
 
             self.window.fill((0, 0, 0))
+            self.render_map()
 
-            for edge_source, edge_targets in self.map.edges.items():
-                for edge_target in edge_targets:
-                    source = self.point_to_screen(self.map.coordinates[edge_source])
-                    target = self.point_to_screen(self.map.coordinates[edge_target])
-
-                    if self.showing_weather:
-                        weather = self.map.weather[(edge_source, edge_target)] * 255
-                        edge_color = (255, round(255 - weather), round(255 - weather))
-                    else:
-                        edge_color = (255, 255, 255)
-
-                    pygame.draw.line(self.window, edge_color, source, target)
+            seq_event = self.seq[self.seq_position][1]
+            if isinstance(seq_event, SearchResults):
+                self.render_search_results(seq_event)
 
             pygame.display.flip()
 
@@ -102,6 +99,41 @@ class UI:
                 self.zoom /= zoom_factor
             elif event.key == pygame.K_w:
                 self.showing_weather = not self.showing_weather
+            elif event.key == pygame.K_RETURN:
+                self.seq_position = min(self.seq_position + 1, len(self.seq) - 1)
+                pygame.display.set_caption(self.seq[self.seq_position][0])
+            elif event.key == pygame.K_BACKSPACE:
+                self.seq_position = max(self.seq_position - 1, 0)
+                pygame.display.set_caption(self.seq[self.seq_position][0])
+
+    def render_map(self) -> None:
+        for edge_source, edge_targets in self.map.edges.items():
+            for edge_target in edge_targets:
+                source = self.point_to_screen(self.map.coordinates[edge_source])
+                target = self.point_to_screen(self.map.coordinates[edge_target])
+
+                if self.showing_weather:
+                    weather = self.map.weather[(edge_source, edge_target)] * 255
+                    edge_color = (255, round(255 - weather), round(255 - weather))
+                else:
+                    edge_color = (255, 255, 255)
+
+                pygame.draw.line(self.window, edge_color, source, target)
+
+    def render_search_results(self, res: SearchResults) -> None:
+        for node in res.visited:
+            pos = self.point_to_screen(self.map.coordinates[node])
+            color = (0, 255, 0) if res.path is not None and node in res.path else (255, 0, 0)
+            pygame.draw.circle(self.window, color, pos, 3)
+
+        if res.path is not None:
+            i = 0
+            while i < len(res.path) - 1:
+                source = self.point_to_screen(self.map.coordinates[res.path[i]])
+                target = self.point_to_screen(self.map.coordinates[res.path[i + 1]])
+
+                pygame.draw.line(self.window, (0, 255, 0), source, target)
+                i += 1
 
     def point_to_screen(self, p: Point) -> tuple[float, float]:
         initial_x = (p.x - self.translatex) * self.scale
