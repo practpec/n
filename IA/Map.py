@@ -17,13 +17,14 @@
 # -------------------------------------------------------------------------------------------------
 
 import math
-from typing import NamedTuple
+from typing import NamedTuple, Optional
 
 from bs4 import BeautifulSoup
 from perlin_noise import PerlinNoise
 import requests
 
-from IA.Graph import Graph
+from IA.Graph import Graph, SearchResults
+from IA.Vehicle import Vehicle
 
 EARTH_RADIUS = 6378137.0 # meters
 
@@ -36,6 +37,7 @@ class Map(Graph):
         super().__init__()
         self.coordinates: dict[int, Point] = {}
         self.weather: dict[tuple[int, int], float] = {}
+        self.center: Optional[int] = None
 
         xml_text = self.cached_request(location)
         soup = BeautifulSoup(xml_text, 'xml')
@@ -83,7 +85,7 @@ class Map(Graph):
                 ref2 = int(children[i + 1]['ref'])
                 source = self.coordinates[ref1]
                 target = self.coordinates[ref2]
-                cost = ((source.x - target.y) ** 2 + (source.y - target.y) ** 2) ** 0.5
+                cost = ((source.x - target.x) ** 2 + (source.y - target.y) ** 2) ** 0.5
 
                 self.edges[ref1][ref2] = cost
                 i += 1
@@ -110,3 +112,19 @@ class Map(Graph):
 
                 weather_edge = max(0.0, min((weather_source + weather_target) / 2, 1.0))
                 self.weather[(source, target)] = weather_edge
+
+    def bfs(self, source: int, target: int, vehicle: Vehicle) -> SearchResults:
+        def real_cost(source: int, target: int) -> float:
+            distance = self.edges[source][target]
+            weather = self.weather[(source, target)]
+            return vehicle.calculate_travel_time(distance, weather)
+
+        def can_pass(source: int, target: int) -> bool:
+            return self.weather[(source, target)] <= vehicle.worst_weather
+
+        def limit_cost(source: int, target: int) -> float:
+            distance = self.edges[source][target]
+            weather = self.weather[(source, target)]
+            return vehicle.calculate_spent_fuel(distance, weather)
+
+        return self.raw_bfs(source, target, vehicle.max_fuel, real_cost, can_pass, limit_cost)

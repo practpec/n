@@ -17,11 +17,32 @@
 # -------------------------------------------------------------------------------------------------
 
 from IA.Map import Map
+from IA.Problem import EventSequence
 from IA.UI import UI
+from IA.Vehicle import Person, Car, Motorcycle
 
 def main() -> None:
     pmap: Map = Map('Braga (São Vítor)')
-    UI(pmap)
+
+    results1 = pmap.bfs(4643306970, 12085192464, Car())
+    print('cost:', results1.cost, 's')
+    print('distance:', results1.distance, 'm')
+
+    results2 = pmap.bfs(4643306970, 12085192464, Motorcycle())
+    print('cost:', results2.cost, 's')
+    print('distance:', results2.distance, 'm')
+
+    results3 = pmap.bfs(4643306970, 12085192464, Person())
+    print('cost:', results3.cost, 's')
+    print('distance:', results3.distance, 'm')
+
+    seq: EventSequence = [
+        ('Press RETURN to advance simulation', None),
+        ('Carro', results1),
+        ('Mota', results2),
+        ('Pessoa', results3),
+    ]
+    UI(pmap, seq)
 
 if __name__ == '__main__':
     main()

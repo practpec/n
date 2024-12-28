@@ -22,43 +22,45 @@ from typing import Callable, NamedTuple, Optional, cast
 
 class SearchResults(NamedTuple):
     path: Optional[list[int]]
-    cost: Optional[float]
+    cost: Optional[float]     # cost after real_cost function
+    distance: Optional[float] # cost according to the graph edges
     visited: list[int]
 
 class Graph:
     def __init__(self) -> None:
         self.edges: dict[int, dict[int, float]] = {}
 
-    # pylint: disable-next=too-many-arguments too-many-positional-arguments
     def raw_bfs(self,
                 source: int,
                 target: int,
                 cost_limit: float,
+                real_cost: Callable[[int, int], float],
                 can_pass: Callable[[int, int], bool],
                 limit_cost: Callable[[int, int], float]) -> SearchResults:
 
         edge = deque([source])
         parents: dict[int, Optional[int]] = { source: None }
-        costs: dict[int, float] = { source: 0.0 }
+        limit_costs: dict[int, float] = { source: 0.0 }
 
         while edge:
             expanded = edge[0]
             if expanded == target:
                 path = self.path_from_parents(target, parents)
-                cost = self.cost_from_path(path)
+                cost = self.cost_from_path(path, real_cost)
+                distance = self.cost_from_path(path, lambda o, d: self.edges[o][d])
                 visited = list(parents)
-                return SearchResults(path, cost, visited)
+                return SearchResults(path, cost, distance, visited)
 
             edge.popleft()
             for to_visit in self.edges[expanded]:
                 if to_visit not in parents and can_pass(expanded, to_visit):
-                    total_cost = costs[expanded] + limit_cost(expanded, to_visit)
+                    total_cost = limit_costs[expanded] + limit_cost(expanded, to_visit)
                     if total_cost < cost_limit:
                         edge.append(to_visit)
                         parents[to_visit] = expanded
-                        costs[to_visit] = total_cost
+                        limit_costs[to_visit] = total_cost
 
-        return SearchResults(None, None, list(parents))
+        return SearchResults(None, None, None, list(parents))
 
     def path_from_parents(self, target: int, parents: dict[int, Optional[int]]) -> list[int]:
         path = [target]
@@ -70,11 +72,11 @@ class Graph:
 
         return path[::-1]
 
-    def cost_from_path(self, path: list[int]) -> float:
+    def cost_from_path(self, path: list[int], real_cost: Callable[[int, int], float]) -> float:
         cost = 0.0
         i = 0
         while i < len(path) - 1:
-            cost += self.edges[path[i]][path[i + 1]]
+            cost += real_cost(path[i], path[i + 1])
             i += 1
 
         return cost
