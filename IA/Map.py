@@ -17,14 +17,14 @@
 # -------------------------------------------------------------------------------------------------
 
 import math
-from typing import NamedTuple, Optional
+from typing import NamedTuple
 
 from bs4 import BeautifulSoup
 from perlin_noise import PerlinNoise
 import requests
 
 from IA.Graph import Graph, SearchResults
-from IA.Vehicle import Vehicle
+from IA.Distribution import DeliveryTarget, DistributionCenter, Vehicle
 
 EARTH_RADIUS = 6378137.0 # meters
 
@@ -33,11 +33,12 @@ class Point(NamedTuple):
     y: float
 
 class Map(Graph):
-    def __init__(self, location: str) -> None:
+    def __init__(self, location: str, distribution_center: DistributionCenter) -> None:
         super().__init__()
         self.coordinates: dict[int, Point] = {}
         self.weather: dict[tuple[int, int], float] = {}
-        self.center: Optional[int] = None
+        self.distribution_center = distribution_center
+        self.delivery_targets: list[DeliveryTarget] = []
 
         xml_text = self.cached_request(location)
         soup = BeautifulSoup(xml_text, 'xml')

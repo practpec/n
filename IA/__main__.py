@@ -19,10 +19,17 @@
 from IA.Map import Map
 from IA.Problem import EventSequence
 from IA.UI import UI
-from IA.Vehicle import Person, Car, Motorcycle
+from IA.Distribution import Person, Car, Motorcycle, DistributionCenter, DeliveryTarget
 
 def main() -> None:
-    pmap: Map = Map('Braga (São Vítor)')
+    pmap = Map('Braga (São Vítor)', DistributionCenter(439359565))
+    pmap.delivery_targets.append(DeliveryTarget('Tribunal', 1605296772))
+    pmap.delivery_targets.append(DeliveryTarget('Escola Secundária Alberto Sampaio', 4090416170))
+    pmap.delivery_targets.append(DeliveryTarget('Instituto de Nanotecnologia', 1607596806))
+    pmap.delivery_targets.append(DeliveryTarget('Cemitério', 2361505854))
+    pmap.delivery_targets.append(DeliveryTarget('Universidade do Minho', 227110575))
+    pmap.delivery_targets.append(DeliveryTarget('Olimpo', 1193997031))
+    pmap.delivery_targets.append(DeliveryTarget('Happy China', 4674683655))
 
     results1 = pmap.bfs(4643306970, 12085192464, Car())
     print('cost:', results1.cost, 's')

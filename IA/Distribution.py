@@ -42,3 +42,12 @@ class Motorcycle(Vehicle):
 class Car(Vehicle):
     def __init__(self) -> None:
         super().__init__(10000, 100, 0.7, 4.0)
+
+@dataclass
+class DistributionCenter:
+    node: int
+
+@dataclass
+class DeliveryTarget:
+    name: str
+    node: int

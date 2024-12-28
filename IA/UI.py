@@ -66,10 +66,10 @@ class UI:
             for event in pygame.event.get():
                 self.handle_event(event)
 
-            self.window.fill((0, 0, 0))
-            self.render_map()
-
             seq_event = self.seq[self.seq_position][1]
+
+            self.window.fill((0, 0, 0))
+            self.render_map(seq_event is None)
             if isinstance(seq_event, SearchResults):
                 self.render_search_results(seq_event)
 
@@ -119,7 +119,7 @@ class UI:
                 self.seq_position = max(self.seq_position - 1, 0)
                 pygame.display.set_caption(self.seq[self.seq_position][0])
 
-    def render_map(self) -> None:
+    def render_map(self, draw_way_points: bool) -> None:
         for edge_source, edge_targets in self.map.edges.items():
             for edge_target in edge_targets:
                 source = self.point_to_screen(self.map.coordinates[edge_source])
@@ -129,14 +129,25 @@ class UI:
                     weather = self.map.weather[(edge_source, edge_target)] * 255
                     edge_color = (255, round(255 - weather), round(255 - weather))
                 else:
-                    edge_color = (255, 255, 255)
+                    edge_color = (155, 155, 155)
 
                 pygame.draw.line(self.window, edge_color, source, target)
+
+        if draw_way_points:
+            self.render_triangle(self.map.coordinates[self.map.distribution_center.node],
+                                 (0, 255, 255))
+
+            for delivery_target in self.map.delivery_targets:
+                self.render_triangle(self.map.coordinates[delivery_target.node], (255, 0, 0))
+
+    def render_triangle(self, point: Point, color: tuple[int, int, int]) -> None:
+        x, y = self.point_to_screen(point)
+        pygame.draw.polygon(self.window, color, [ (x, y), (x - 5, y - 10), (x + 5, y - 10) ])
 
     def render_search_results(self, res: SearchResults) -> None:
         for node in res.visited:
             pos = self.point_to_screen(self.map.coordinates[node])
-            color = (0, 255, 0) if res.path is not None and node in res.path else (255, 0, 0)
+            color = (0, 255, 255) if res.path is not None and node in res.path else (255, 0, 0)
             pygame.draw.circle(self.window, color, pos, 3)
 
         if res.path is not None:
@@ -145,7 +156,7 @@ class UI:
                 source = self.point_to_screen(self.map.coordinates[res.path[i]])
                 target = self.point_to_screen(self.map.coordinates[res.path[i + 1]])
 
-                pygame.draw.line(self.window, (0, 255, 0), source, target)
+                pygame.draw.line(self.window, (0, 255, 255), source, target, 2)
                 i += 1
 
     def point_to_screen(self, p: Point) -> tuple[float, float]:
