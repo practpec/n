@@ -31,6 +31,9 @@ class Vehicle:
     def calculate_travel_time(self, cost: float, weather: float) -> float:
         return (cost * (1 + weather)) / self.speed
 
+    def __hash__(self) -> int:
+        return hash(type(self).__name__)
+
 class Person(Vehicle):
     def __init__(self) -> None:
         super().__init__(2000, 10, 1.0, 1.5)
@@ -41,7 +44,7 @@ class Motorcycle(Vehicle):
 
 class Car(Vehicle):
     def __init__(self) -> None:
-        super().__init__(10000, 100, 0.7, 4.0)
+        super().__init__(10000, 30, 0.7, 4.0)
 
 @dataclass
 class DistributionCenter:
@@ -51,3 +54,12 @@ class DistributionCenter:
 class DeliveryTarget:
     name: str
     node: int
+
+@dataclass
+class Product:
+    name: str
+    weight: float
+    color: tuple[int, int, int]
+
+    def __hash__(self) -> int:
+        return hash(self.name)

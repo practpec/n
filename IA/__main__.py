@@ -16,12 +16,21 @@
 #
 # -------------------------------------------------------------------------------------------------
 
+from pprint import pprint
+
 from IA.Map import Map
 from IA.Problem import EventSequence
 from IA.UI import UI
-from IA.Distribution import Person, Car, Motorcycle, DistributionCenter, DeliveryTarget
+from IA.Distribution import Person, Car, Motorcycle, DistributionCenter, DeliveryTarget, Product
+from IA.BinPacking import genetic_bin_pack
 
 def main() -> None:
+    vehicle_costs = { Car(): 100.0, Motorcycle(): 1000.0, Person(): 10.0 }
+    vehicles = { Car(): 1, Person(): 1 }
+    products = { Product('alface', 3, (0, 255, 0)): 10, Product('gasoil', 5, (255, 0, 0)): 2 }
+    bin_packing = genetic_bin_pack(vehicle_costs, vehicles, products)
+    pprint(bin_packing)
+
     pmap = Map('Braga (São Vítor)', DistributionCenter(439359565))
     pmap.delivery_targets.append(DeliveryTarget('Tribunal', 1605296772))
     pmap.delivery_targets.append(DeliveryTarget('Escola Secundária Alberto Sampaio', 4090416170))
@@ -45,6 +54,7 @@ def main() -> None:
 
     seq: EventSequence = [
         ('Press RETURN to advance simulation', None),
+        ('Bin packing', bin_packing),
         ('Carro', results1),
         ('Mota', results2),
         ('Pessoa', results3),

@@ -16,6 +16,7 @@
 #
 # -------------------------------------------------------------------------------------------------
 
+from IA.BinPacking import BinPackingResult
 from IA.Graph import SearchResults
 
-EventSequence = list[tuple[str, None | SearchResults]]
+EventSequence = list[tuple[str, None | SearchResults | BinPackingResult]]
