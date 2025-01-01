@@ -34,6 +34,7 @@ class UI:
         self.seq = seq
         self.seq_position = 0
         self.showing_weather = False
+        self.animation_state = 0
 
         self.generate_initial_projection(pmap)
 
@@ -123,11 +124,23 @@ class UI:
                 self.zoom /= zoom_factor
             elif event.key == pygame.K_w:
                 self.showing_weather = not self.showing_weather
+            elif event.key == pygame.K_a:
+                self.animation_state = 0
             elif event.key == pygame.K_RETURN:
                 self.seq_position = min(self.seq_position + 1, len(self.seq) - 1)
+
+                contents = self.seq[self.seq_position][1]
+                if isinstance(contents, SearchResults):
+                    self.animation_state = len(contents.visited)
+
                 pygame.display.set_caption(self.seq[self.seq_position][0])
             elif event.key == pygame.K_BACKSPACE:
                 self.seq_position = max(self.seq_position - 1, 0)
+
+                contents = self.seq[self.seq_position][1]
+                if isinstance(contents, SearchResults):
+                    self.animation_state = len(contents.visited)
+
                 pygame.display.set_caption(self.seq[self.seq_position][0])
 
     def render_map(self, draw_way_points: bool) -> None:
@@ -156,12 +169,19 @@ class UI:
         pygame.draw.polygon(self.window, color, [ (x, y), (x - 5, y - 10), (x + 5, y - 10) ])
 
     def render_search_results(self, res: SearchResults) -> None:
-        for node in res.visited:
+        for i in range(self.animation_state):
+            node = res.visited[i]
             pos = self.point_to_screen(self.map.coordinates[node])
-            color = (0, 255, 255) if res.path is not None and node in res.path else (255, 0, 0)
+
+            color = (255, 0, 0)
+            if self.animation_state == len(res.visited) and \
+                res.path is not None and node in res.path:
+
+                color = (0, 255, 255)
+
             pygame.draw.circle(self.window, color, pos, 3)
 
-        if res.path is not None:
+        if res.path is not None and self.animation_state == len(res.visited):
             i = 0
             while i < len(res.path) - 1:
                 source = self.point_to_screen(self.map.coordinates[res.path[i]])
@@ -169,6 +189,9 @@ class UI:
 
                 pygame.draw.line(self.window, (0, 255, 255), source, target, 2)
                 i += 1
+
+        if self.animation_state < len(res.visited):
+            self.animation_state += 1
 
     def render_bin_packing_results(self, res: BinPackingResult) -> None:
         bar_translate = (WINDOW_WIDTH - (len(res.results) * 96 - 32)) / 2
