@@ -17,13 +17,14 @@
 # -------------------------------------------------------------------------------------------------
 
 import math
+from enum import Enum
 from typing import NamedTuple
 
 from bs4 import BeautifulSoup
 from perlin_noise import PerlinNoise
 import requests
 
-from IA.Graph import Graph, SearchResults
+from IA.Graph import Graph, SearchAlgorithm, SearchResults
 from IA.Distribution import DeliveryTarget, DistributionCenter, Vehicle
 
 EARTH_RADIUS = 6378137.0 # meters
@@ -31,6 +32,10 @@ EARTH_RADIUS = 6378137.0 # meters
 class Point(NamedTuple):
     x: float
     y: float
+
+class SearchHeuristic(Enum):
+    CARTESIAN = 1
+    MANHATTAN = 2
 
 class Map(Graph):
     def __init__(self, location: str, distribution_center: DistributionCenter) -> None:
@@ -88,7 +93,9 @@ class Map(Graph):
                 target = self.coordinates[ref2]
                 cost = ((source.x - target.x) ** 2 + (source.y - target.y) ** 2) ** 0.5
 
+                # Make graph bidirectional (there's no traffic during a hurricane)
                 self.edges[ref1][ref2] = cost
+                self.edges[ref2][ref1] = cost
                 i += 1
 
     def generate_weather(self) -> None:
@@ -114,13 +121,20 @@ class Map(Graph):
                 weather_edge = max(0.0, min((weather_source + weather_target) / 2, 1.0))
                 self.weather[(source, target)] = weather_edge
 
-    def bfs(self, source: int, target: int, vehicle: Vehicle) -> SearchResults:
+    def search(self,
+               source: int,
+               target: int,
+               algorithm: SearchAlgorithm,
+               vehicle: Vehicle,
+               heuristic: SearchHeuristic = SearchHeuristic.CARTESIAN) -> SearchResults:
+
         def real_cost(source: int, target: int) -> float:
             distance = self.edges[source][target]
             weather = self.weather[(source, target)]
             return vehicle.calculate_travel_time(distance, weather)
 
         def can_pass(source: int, target: int) -> bool:
+            # TODO - add random weather
             return self.weather[(source, target)] <= vehicle.worst_weather
 
         def limit_cost(source: int, target: int) -> float:
@@ -128,4 +142,38 @@ class Map(Graph):
             weather = self.weather[(source, target)]
             return vehicle.calculate_spent_fuel(distance, weather)
 
-        return self.raw_bfs(source, target, vehicle.max_fuel, real_cost, can_pass, limit_cost)
+        def cartesian(source: int) -> float:
+            source_coords = self.coordinates[source]
+            target_coords = self.coordinates[target]
+
+            # Don't take sqrt (better performance for comparison only)
+            return (source_coords.x - target_coords.x) ** 2 + \
+                   (source_coords.y - target_coords.y) ** 2
+
+        def cartesian_astar(source: int) -> float:
+            source_coords = self.coordinates[source]
+            target_coords = self.coordinates[target]
+
+            return ((source_coords.x - target_coords.x) ** 2 + \
+                   (source_coords.y - target_coords.y) ** 2) ** 0.5
+
+        def manhattan(source: int) -> float:
+            source_coords = self.coordinates[source]
+            target_coords = self.coordinates[target]
+
+            return abs(source_coords.x - target_coords.x) + abs(source_coords.y - target_coords.y)
+
+        heuristic_function = {
+            SearchHeuristic.CARTESIAN:
+                cartesian_astar if algorithm == SearchAlgorithm.ASTAR else cartesian,
+            SearchHeuristic.MANHATTAN: manhattan
+        }[heuristic]
+
+        return self.raw_search(source,
+                               target,
+                               algorithm,
+                               vehicle.max_fuel,
+                               real_cost,
+                               can_pass,
+                               limit_cost,
+                               heuristic_function)

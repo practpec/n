@@ -18,7 +18,8 @@
 
 from pprint import pprint
 
-from IA.Map import Map
+from IA.Graph import SearchAlgorithm
+from IA.Map import Map, SearchHeuristic
 from IA.Problem import EventSequence
 from IA.UI import UI
 from IA.Distribution import Person, Car, Motorcycle, DistributionCenter, DeliveryTarget, Product
@@ -40,24 +41,65 @@ def main() -> None:
     pmap.delivery_targets.append(DeliveryTarget('Olimpo', 1193997031))
     pmap.delivery_targets.append(DeliveryTarget('Happy China', 4674683655))
 
-    results1 = pmap.bfs(4643306970, 12085192464, Car())
+    results1 = pmap.search(4643306970, 2681450633, SearchAlgorithm.DFS, Car())
     print('cost:', results1.cost, 's')
     print('distance:', results1.distance, 'm')
 
-    results2 = pmap.bfs(4643306970, 12085192464, Motorcycle())
+    results0 = pmap.search(4643306970, 2681450633, SearchAlgorithm.ITERATIVE, Car())
+    print('cost:', results0.cost, 's')
+    print('distance:', results0.distance, 'm')
+
+    results2 = pmap.search(4643306970, 12085192464, SearchAlgorithm.BFS, Car())
     print('cost:', results2.cost, 's')
     print('distance:', results2.distance, 'm')
 
-    results3 = pmap.bfs(4643306970, 12085192464, Person())
+    results3 = pmap.search(4643306970, 12085192464, SearchAlgorithm.DIJKSTRA, Car())
     print('cost:', results3.cost, 's')
     print('distance:', results3.distance, 'm')
 
+    results4 = pmap.search(4643306970,
+                           12085192464,
+                           SearchAlgorithm.GREEDY,
+                           Car(),
+                           SearchHeuristic.CARTESIAN)
+    print('cost:', results3.cost, 's')
+    print('distance:', results3.distance, 'm')
+
+    results5 = pmap.search(4643306970,
+                           12085192464,
+                           SearchAlgorithm.GREEDY,
+                           Car(),
+                           SearchHeuristic.MANHATTAN)
+    print('cost:', results4.cost, 's')
+    print('distance:', results4.distance, 'm')
+
+    results6 = pmap.search(4643306970,
+                           12085192464,
+                           SearchAlgorithm.ASTAR,
+                           Car(),
+                           SearchHeuristic.CARTESIAN)
+    print('cost:', results6.cost, 's')
+    print('distance:', results6.distance, 'm')
+
+    results7 = pmap.search(4643306970,
+                           12085192464,
+                           SearchAlgorithm.ASTAR,
+                           Car(),
+                           SearchHeuristic.MANHATTAN)
+    print('cost:', results7.cost, 's')
+    print('distance:', results7.distance, 'm')
+
     seq: EventSequence = [
         ('Press RETURN to advance simulation', None),
-        ('Bin packing', bin_packing),
-        ('Carro', results1),
-        ('Mota', results2),
-        ('Pessoa', results3),
+        # ('Bin packing', bin_packing),
+        ('DFS', results1),
+        ('Iterative', results0),
+        ('BFS', results2),
+        ('Dijkstra', results3),
+        # ('Greedy (cartesian heuristic)', results4),
+        # ('Greedy (manhattan heuristic)', results5),
+        ('A* (cartesian heuristic)', results6),
+        ('A* (manhattan heuristic)', results7),
     ]
     UI(pmap, seq)
 
