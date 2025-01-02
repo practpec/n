@@ -1,0 +1,110 @@
+{
+    "map": {
+        "location": "Braga (São Vítor)",
+        "directed": false,
+        "enable-weather": false
+    },
+
+    "distribution-center": {
+        "name": "Bar Académico",
+        "node": 439359565,
+        "vehicles": {
+            "person": 20,
+            "motorcycle": 10,
+            "car": 5
+        }
+    },
+
+    "delivery-targets": {
+        "Tribunal": {
+            "name": "Tribunal",
+            "node": 1605296772,
+            "products": {}
+        },
+        "Escola Secundária Alberto Sampaio": {
+            "name": "Escola Secundária Alberto Sampaio",
+            "node": 4090416170,
+            "products": {}
+        },
+        "Instituto de Nanotecnologia": {
+            "name": "Instituto de Nanotecnologia",
+            "node": 1607596806,
+            "products": {}
+        },
+        "Cemitério": {
+            "name": "Cemitério",
+            "node": 2361505854,
+            "products": {}
+        },
+        "Universidade do Minho": {
+            "name": "Universidade do Minho",
+            "node": 227110575,
+            "products": {}
+        },
+        "Olimpo": {
+            "name": "Olimpo",
+            "node": 1193997031,
+            "products": {}
+        },
+        "Happy China": {
+            "name": "Happy China",
+            "node": 4674683655,
+            "products": {}
+        }
+    },
+
+    "vehicles": {
+        "person": {
+            "name": "person",
+            "max_fuel": 2000.0,
+            "max_weight": 10.0,
+            "worst_weather": 1.0,
+            "speed": 1.0,
+            "image": "res/person.bmp"
+        },
+        "motorcycle": {
+            "name": "motorcycle",
+            "max_fuel": 6000.0,
+            "max_weight": 20.0,
+            "worst_weather": 0.9,
+            "speed": 5.0,
+            "image": "res/motorcycle.bmp"
+        },
+        "car": {
+            "name": "car",
+            "max_fuel": 10000.0,
+            "max_weight": 30.0,
+            "worst_weather": 0.7,
+            "speed": 4.0,
+            "image": "res/car.bmp"
+        }
+    },
+
+    "products": {
+        "Water bottle": {
+            "name": "Water bottle",
+            "weight": 2.0,
+            "color": [0, 255, 255]
+        },
+        "Bag of flour": {
+            "name": "Bag of flour",
+            "weight": 3.0,
+            "color": [200, 200, 200]
+        },
+        "Frozen meat": {
+            "name": "Frozen meat",
+            "weight": 4.0,
+            "color": [150, 0, 0]
+        },
+        "Frozen vegetables": {
+            "name": "Frozen vegetables",
+            "weight": 5.0,
+            "color": [0, 0, 100]
+        },
+        "Butane bottle": {
+            "name": "Butane bottle",
+            "weight": 9.0,
+            "color": [200, 200, 0]
+        }
+    }
+}
