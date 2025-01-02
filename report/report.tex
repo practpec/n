@@ -1,0 +1,133 @@
+\documentclass[12pt, a4paper]{article}
+
+\usepackage{array}
+\usepackage[portuguese]{babel}
+\usepackage{cite}
+\usepackage{float}
+\usepackage[a4paper, margin=2cm]{geometry}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{longtable}
+\usepackage{setspace}
+
+\chardef\_=`_
+
+\title{
+    \vspace*{\fill}
+    \textbf{
+        Inteligência Artificial -- Trabalho Prático  \\
+        \large Distribuição de alimentos durante uma catástrofe natural
+    }
+}
+
+\author{
+    \begin{tabular}{lc}
+        Ana Carolina Penha Cerqueira       & A104188 \\
+        Humberto Gil Azevedo Sampaio Gomes & A104348 \\
+        João Pedro de Vasconcelos Torres   & A95748  \\
+        José António Fernandes Alves Lopes & A104541 \\
+        José Rodrigo Ferreira Matos        & A100612 \\
+    \end{tabular}
+}
+
+\date{3 de janeiro de 2025 \vspace*{\fill}}
+
+\begin{document}
+
+\onehalfspacing
+\setlength{\parskip}{\baselineskip}
+\setlength{\parindent}{0pt}
+\def\arraystretch{1.5}
+
+\begin{titlepage}
+    \maketitle
+\end{titlepage}
+
+\pagenumbering{gobble}
+\pagebreak
+\pagenumbering{arabic}
+
+\section{Algoritmos de procura}
+
+Foram implementados diversos algoritmos de procura, para poderem ser comparados em aspetos de
+qualidade da solução gerada e de desempenho computacional. Nesta secção, procura-se enumerar os
+algoritmos implementados e descrever algumas das otimizações desenvolvidas.
+
+\subsection{Procura em profundidade}
+
+Este algoritmo foi implementado com algumas diferenças em relação à sua implementação
+\emph{standard}. Em primeiro lugar, é armazenado um conjunto de nós visitados, que é utilizado para
+garantir que o algoritmo termina, mesmo em grafos com ciclos. De seguida, o algoritmo também foi
+implementado iterativamente, e não recursivamente. Devido ao grande tamanho de uma \emph{frame} da
+\emph{stack} em Python, o limite de chamadas recursivas é bastante baixo, pelo que a implementação
+iterativa se provou necessária para caminhos longos. Por último, o algoritmo não expande nós que
+ultrapassem o limite de combustível do veículo a realizar a procura, diminuindo o número de nós
+visitados quando não existe um caminho que o veículo seja capaz de realizar.
+
+\subsection{Procura iterativa}
+
+Este algoritmo, através de chamadas sucessivas ao algoritmo de procura em profundidade (com uma
+profundidade máxima definida), encontra o caminho entre dois nós com o menor número de saltos. No
+entanto, o algoritmo de procura em profundidade descrito anteriormente não pode ser utilizado para
+uma procura iterativa. O uso de um conjunto para registar os nós visitados e evitar ciclos faz com
+que, após \emph{back tracking}, alguns caminhos possíveis não sejam considerados, uma vez que
+envolvem nós já visitados. Logo, a verificação de ciclos na procura em profundidade limitada é feita
+através da consulta do caminho até ao nó atual (e se a sua expansão não causará um ciclo)
+\cite{aima}. Esta verificação mais lenta e o maior número de nós visitados (é possível que o mesmo
+nó seja visitado várias vezes) fazem com que este algoritmo exija um tempo de processamento muito
+superior aos restantes, pelo que não será considerado para os testes realizados.
+
+\subsection{Procura em largura}
+
+Este algoritmo encontra o caminho entre dois nós com o menor número de saltos. Para um melhor
+desempenho, foi usada uma lista duplamente ligada para a implementação da fila de espera deste
+algoritmo. Deste modo, tanto as operações de \emph{push} como \emph{pop} podem ser executadas em
+tempo constante. Tal como na procura em profundidade, o algoritmo não expande nós que ultrapassem o
+limite de combustível do veículo a realizar a procura.
+
+\subsection{Procura de custo uniforme / Algoritmo de Dijkstra}
+
+Este algoritmo encontra o caminho com menor custo entre dois nós. Para a implementação da fila de
+prioridades necessária para este algoritmo, foi utilizado um \emph{heap} binário, que apresenta
+melhor desempenho do que listas. Tal como os outros algoritmos, não são expandidos nós fora do
+alcance do combustível do veículo a realizar a procura, diminuindo o número de nós visitados quando
+não existe um caminho que o veículo seja capaz de realizar.
+
+\subsection{Procura gulosa}
+
+Este algoritmo é muito semelhante à procura em profundidade, com a diferença de que a ordem de
+expansão dos vizinhos de um nó é determinada por uma heurística. Tal como na implementação da
+procura em profundidade, o algoritmo foi implementado iterativamente, e também não expande nós
+fora do alcance do combustível do veículo a realizar a procura. Uma outra otimização, exclusiva à
+procura gulosa, relaciona-se com a heurística de distância cartesiana. Como os valores da
+heurística apenas são utilizados para comparação entre si, visto que a raiz quadrada é uma função
+monótona crescente, o seu cálculo não é necessário, melhorando o desempenho do algoritmo:
+
+$$
+    dx_1^2 + dy_1^2 < dx_2^2 + dy_2^2
+    \Rightarrow
+    \sqrt{dx_1^2 + dy_1^2} < \sqrt{dx_2^2 + dy_2^2}
+$$
+
+\subsection{A*}
+
+A única diferença entre este algoritmo e o algoritmo de Dijkstra é a ordem dos nós na fila de
+espera, que passam a estar ordenados pela soma da sua distância à origem da procura com a sua
+heurística. Quando a heurística é cartesiana, já não é possível evitar o cálculo das raízes
+quadradas como na pesquisa gulosa, visto que é necessário que a heurística não sobreestime o custo
+entre dois nós caso se deseje que o algoritmo devolva a solução ótima de um problema de procura
+\cite{aima}.
+
+\section{Algoritmo para \emph{bin packing}}
+
+\section{Conclusão}
+
+\section{Bibliografia}
+\def\refname{}
+\vspace{-1.5cm}
+\begin{thebibliography}{9}
+    \bibitem{aima} S. Russel and P. Norvig, \emph{Artificial Intelligence -- A Modern Approach},
+        4th ed. USA: Pearson, 2021.
+\end{thebibliography}
+
+\end{document}
