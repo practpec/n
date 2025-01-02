@@ -1,5 +1,6 @@
 \documentclass[12pt, a4paper]{article}
 
+\usepackage{amsmath}
 \usepackage{array}
 \usepackage[portuguese]{babel}
 \usepackage{cite}
@@ -118,7 +119,51 @@ quadradas como na pesquisa gulosa, visto que é necessário que a heurística n�
 entre dois nós caso se deseje que o algoritmo devolva a solução ótima de um problema de procura
 \cite{aima}.
 
-\section{Algoritmo para \emph{bin packing}}
+\section{Algoritmo para empacotamento}
+
+Para o envio de recursos para um local, é necessário distribuí-los por veículos, Surge um problema
+de empacotamento, onde se procura distribuir vários produtos, cada um com um peso, por vários
+veículos, cada um com um limite de peso e um custo de envio, procurando maximizar-se o peso enviado,
+enquanto se minimiza o custo de envio dos veículos.
+
+Na aplicação desenvolvida, este problema é resolvido com um algoritmo genético. Um indivíduo, que
+correspondente a uma distribuição dos produtos pelos veículos, é constituído por tantos genes
+quantos produtos. Cada gene é um número inteiro, e corresponde ao veículo em que o produto deve ser
+colocado. Segue-se, abaixo, o exemplo de um indivíduo, onde todos os produtos são colocados no
+veículo 0, com exceção do 3º produto, que é colocado no veículo 1.
+
+\begin{table}[H]
+    \begin{center}
+        \begin{tabular}{|c|c|c|c|c|}
+            \hline 0 & 0 & 1 & 0 & 0 \\ \hline
+        \end{tabular}
+
+        \caption{Exemplo um indivíduo no algoritmo genético utilizado para empacotamento.}
+    \end{center}
+\end{table}
+
+A função de \emph{fitness} utilizada devolve 0 caso pelo menos um dos veículos ultrapasse o seu
+limite de preço. Quando esta condição não é violada, procura-se, por esta ordem, maximizar o
+peso enviado, minimizar o custo dos veículos enviados, e minimizar o número de veículos enviados.
+Para ordenar estes valores, garantiu-se, através de multiplicações, que estes estavam em diferentes
+ordens de grandeza:
+
+$$
+\mathcal{F}(X) =
+\begin{cases}
+    0
+        ,& \text{se há veículos sobrecarregados} \\
+    \text{Peso}(X) \times 10^6 - \text{Custo}(X) - \text{N}_\text{veículos}(X)
+        ,& \text{caso contrário}
+\end{cases}
+$$
+
+A operação de cruzamento é simples: é escolhido um índice onde os cromossomas dos pais são
+divididos, e geram-se dois filhos, cada um com uma primeira parte do cromossoma de um dos pais e com
+uma segunda parte do outro. A função de mutação, no entanto, já é mais complexa. Uma possível
+mutação é a alteração do veículo no qual um produto é colocado. No entanto, para evitar que o
+algoritmo convirja para colocar todos os produtos num veículo de maior custo quando um de menor
+custo existe, uma possível mutação é a alteração de veículo de todos os produtos no mesmo veículo.
 
 \section{Conclusão}
 
