@@ -20,31 +20,26 @@ import sys
 
 import pygame
 
-from IA.BinPacking import BinPackingResult
-from IA.Graph import SearchResults
-from IA.Map import Map, Point
-from IA.Problem import EventSequence
+from IA.binpack import BinPackingResult
+from IA.graph import SearchResults
+from IA.map import Map, Point
+from IA.problem import ProblemSolution
 
 WINDOW_WIDTH = 800
 WINDOW_HEIGHT = 600
 
 class UI:
-    def __init__(self, pmap: Map, seq: EventSequence) -> None:
+    def __init__(self, pmap: Map, seq: ProblemSolution) -> None:
         self.map = pmap
         self.seq = seq
         self.seq_position = 0
         self.showing_weather = False
         self.animation_state = 0
+        self.vehicles: dict[str, pygame.Surface] = {}
 
         self.generate_initial_projection(pmap)
 
         pygame.init()
-        self.vehicles = {
-            'Person': pygame.image.load('res/person.bmp'),
-            'Motorcycle': pygame.image.load('res/motorcycle.bmp'),
-            'Car': pygame.image.load('res/car.bmp')
-        }
-
         self.window = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
         pygame.display.set_caption(self.seq[self.seq_position][0])
         self.game_loop()
@@ -204,7 +199,10 @@ class UI:
             height_scale_factor = rect_height / vehicle.max_weight
 
             pygame.draw.rect(self.window, (255, 255, 255), rect, 1)
-            self.window.blit(self.vehicles[type(vehicle).__name__], (left, WINDOW_HEIGHT - 90))
+
+            if vehicle.name not in self.vehicles:
+                self.vehicles[vehicle.name] = pygame.image.load(vehicle.image)
+            self.window.blit(self.vehicles[vehicle.name], (left, WINDOW_HEIGHT - 90))
 
             # Fill colors
             product_start = float(WINDOW_HEIGHT - 100)

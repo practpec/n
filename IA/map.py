@@ -24,8 +24,8 @@ from bs4 import BeautifulSoup
 from perlin_noise import PerlinNoise
 import requests
 
-from IA.Graph import Graph, SearchAlgorithm, SearchResults
-from IA.Distribution import DeliveryTarget, DistributionCenter, Vehicle
+from IA.graph import Graph, SearchAlgorithm, SearchResults
+from IA.structs import DeliveryTarget, DistributionCenter, Vehicle
 
 EARTH_RADIUS = 6378137.0 # meters
 
@@ -38,7 +38,12 @@ class SearchHeuristic(Enum):
     MANHATTAN = 2
 
 class Map(Graph):
-    def __init__(self, location: str, distribution_center: DistributionCenter) -> None:
+    def __init__(self,
+                 location: str,
+                 directed: bool,
+                 enable_weather: bool,
+                 distribution_center: DistributionCenter) -> None:
+
         super().__init__()
         self.coordinates: dict[int, Point] = {}
         self.weather: dict[tuple[int, int], float] = {}
@@ -48,8 +53,8 @@ class Map(Graph):
         xml_text = self.cached_request(location)
         soup = BeautifulSoup(xml_text, 'xml')
         self.add_nodes_in_xml(soup)
-        self.add_ways_in_xml(soup)
-        self.generate_weather()
+        self.add_ways_in_xml(soup, directed)
+        self.generate_weather(enable_weather)
 
     def cached_request(self, location: str) -> str:
         try:
@@ -81,7 +86,7 @@ class Map(Graph):
             self.coordinates[node_id] = Point(lon, -lat)
             self.edges[node_id] = {}
 
-    def add_ways_in_xml(self, soup: BeautifulSoup) -> None:
+    def add_ways_in_xml(self, soup: BeautifulSoup, directed: bool) -> None:
         for way_element in soup.find_all('way'):
             children = way_element.find_all('nd')
 
@@ -93,12 +98,12 @@ class Map(Graph):
                 target = self.coordinates[ref2]
                 cost = ((source.x - target.x) ** 2 + (source.y - target.y) ** 2) ** 0.5
 
-                # Make graph bidirectional (there's no traffic during a hurricane)
                 self.edges[ref1][ref2] = cost
-                self.edges[ref2][ref1] = cost
+                if not directed:
+                    self.edges[ref2][ref1] = cost
                 i += 1
 
-    def generate_weather(self) -> None:
+    def generate_weather(self, enable_weather: bool) -> None:
         noise = PerlinNoise(octaves=2, seed=70)
 
         map_width = \
@@ -110,6 +115,10 @@ class Map(Graph):
 
         for source, targets in self.edges.items():
             for target in targets:
+                if not enable_weather:
+                    self.weather[(source, target)] = 0.0
+                    continue
+
                 x = self.coordinates[source].x / map_width
                 y = self.coordinates[source].y / map_height
                 weather_source = noise((x, y)) * 3
@@ -129,6 +138,8 @@ class Map(Graph):
                heuristic: SearchHeuristic = SearchHeuristic.CARTESIAN) -> SearchResults:
 
         def real_cost(source: int, target: int) -> float:
+            return self.edges[source][target]
+
             distance = self.edges[source][target]
             weather = self.weather[(source, target)]
             return vehicle.calculate_travel_time(distance, weather)

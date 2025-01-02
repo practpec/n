@@ -30,24 +30,25 @@ class SearchResults(NamedTuple):
     time: float
 
 class SearchAlgorithm(Enum):
-    DFS = 1
-    ITERATIVE = 2
-    BFS = 3
-    DIJKSTRA = 4
-    GREEDY = 5
-    ASTAR = 6
+    DFS_FAST = 1
+    DFS_CORRECT = 2
+    ITERATIVE = 3
+    BFS = 4
+    DIJKSTRA = 5
+    GREEDY = 6
+    ASTAR = 7
 
 class Graph:
     def __init__(self) -> None:
         self.edges: dict[int, dict[int, float]] = {}
 
-    def raw_dfs(self,
-                source: int,
-                target: int,
-                cost_limit: float,
-                real_cost: Callable[[int, int], float],
-                can_pass: Callable[[int, int], bool],
-                limit_cost: Callable[[int, int], float]) -> SearchResults:
+    def raw_dfs_fast(self,
+                     source: int,
+                     target: int,
+                     cost_limit: float,
+                     real_cost: Callable[[int, int], float],
+                     can_pass: Callable[[int, int], bool],
+                     limit_cost: Callable[[int, int], float]) -> SearchResults:
 
         start = time.process_time()
 
@@ -88,6 +89,53 @@ class Graph:
         end = time.process_time()
         return SearchResults(None, None, None, list(visited), end - start)
 
+    def raw_dfs_correct(self,
+                        source: int,
+                        target: int,
+                        cost_limit: float,
+                        real_cost: Callable[[int, int], float],
+                        can_pass: Callable[[int, int], bool],
+                        limit_cost: Callable[[int, int], float]) -> SearchResults:
+
+        start = time.process_time()
+
+        edge = [(source, 0)]          # Algorithm's stack (because Python's stack is very small)
+        cost: float = 0.0             # Limit (fuel) cost
+        visited: dict[int, None] = {} # Ordered set
+
+        while edge:
+            expanded, edge_visit_count = edge[-1]
+            visited[expanded] = None
+
+            path = [v for v, _ in edge]
+            if expanded == target:
+                cost = self.cost_from_path(path, real_cost)
+                distance = self.cost_from_path(path, lambda o, d: self.edges[o][d])
+                visited_ret = list(visited)
+
+                end = time.process_time()
+                return SearchResults(path, cost, distance, visited_ret, end - start)
+
+            adjacents = list(self.edges[expanded])
+            if edge_visit_count == len(adjacents):
+                if len(edge) >= 2:
+                    edge_limit_cost = limit_cost(edge[-2][0], edge[-1][0])
+                    cost -= edge_limit_cost
+
+                edge.pop()
+            else:
+                edge[-1] = (expanded, edge_visit_count + 1)
+
+                to_visit = adjacents[edge_visit_count]
+                if to_visit not in path and can_pass(expanded, to_visit):
+                    total_limit_cost = cost + limit_cost(expanded, to_visit)
+                    if total_limit_cost <= cost_limit:
+                        cost = total_limit_cost
+                        edge.append((adjacents[edge_visit_count], 0))
+
+        end = time.process_time()
+        return SearchResults(None, None, None, list(visited), end - start)
+
     def raw_iterative(self,
                       source: int,
                       target: int,
@@ -101,7 +149,13 @@ class Graph:
         max_depth = 0
         last_visited = -1
         while True:
-            results = self.raw_dfs(source, target, max_depth, real_cost, can_pass, lambda s, t: 1)
+            results = self.raw_dfs_correct(source,
+                                           target,
+                                           max_depth,
+                                           real_cost,
+                                           can_pass,
+                                           lambda s, t: 1.0)
+
             if results.path:
                 end = time.process_time()
 
@@ -114,7 +168,6 @@ class Graph:
                                          results.distance,
                                          results.visited,
                                          end - start)
-
 
             if len(results.visited) == last_visited:
                 # Whole graph explored. Can't go any further
@@ -158,7 +211,6 @@ class Graph:
                         parents[to_visit] = expanded
                         limit_costs[to_visit] = total_cost
 
-
         end = time.process_time()
         return SearchResults(None, None, None, list(parents), end - start)
 
@@ -174,10 +226,14 @@ class Graph:
 
         edge = [(0.0, source)]                               # Nodes to be expanded
         parents: dict[int, Optional[int]] = { source: None } # To back trace the path
+        costs: dict[int, float] = { source: 0.0 }            # Costs from source to nodes
+        definitive: set[int] = set()                         # Costs for these can't be changed
         limit_costs: dict[int, float] = { source: 0.0 }      # Fuel costs to each node
 
         while edge:
             cost_to_expanded, expanded = heapq.heappop(edge)
+            definitive.add(expanded)
+
             if expanded == target:
                 path = self.path_from_parents(target, parents)
                 cost = self.cost_from_path(path, real_cost)
@@ -188,13 +244,27 @@ class Graph:
                 return SearchResults(path, cost, distance, visited, end - start)
 
             for to_visit in self.edges[expanded]:
-                if to_visit not in parents and can_pass(expanded, to_visit):
+                if to_visit not in definitive and can_pass(expanded, to_visit):
                     total_cost = limit_costs[expanded] + limit_cost(expanded, to_visit)
                     if total_cost < cost_limit:
-                        cost_to_visit = cost_to_expanded + self.edges[expanded][to_visit]
-                        heapq.heappush(edge, (cost_to_visit, to_visit))
-                        parents[to_visit] = expanded
-                        limit_costs[to_visit] = total_cost
+                        cost_to_visit = cost_to_expanded + real_cost(expanded, to_visit)
+
+                        if to_visit not in costs:
+                            parents[to_visit] = expanded
+                            costs[to_visit] = cost_to_visit
+                            limit_costs[to_visit] = total_cost
+                            heapq.heappush(edge, (cost_to_visit, to_visit))
+                        elif cost_to_visit < costs[to_visit]:
+                            parents[to_visit] = expanded
+                            costs[to_visit] = cost_to_visit
+
+                            # Decrease-key min heap (can be done in log(n) time but I'm stupid)
+                            for i, (_, node) in enumerate(edge):
+                                if node == to_visit:
+                                    edge[i] = (cost_to_visit, to_visit)
+                            heapq.heapify(edge)
+
+                            limit_costs[to_visit] = min(total_cost, limit_costs[to_visit])
 
         end = time.process_time()
         return SearchResults(None, None, None, list(parents), end - start)
@@ -259,10 +329,14 @@ class Graph:
 
         edge = [(heuristic(source), 0.0, source)]            # Nodes to be expanded
         parents: dict[int, Optional[int]] = { source: None } # To back trace the path
+        costs: dict[int, float] = { source: 0.0 }            # Costs from source to nodes
+        definitive: set[int] = set()                         # Costs for these can't be changed
         limit_costs: dict[int, float] = { source: 0.0 }      # Fuel costs to each node
 
         while edge:
             _, g_cost_expanded, expanded = heapq.heappop(edge)
+            definitive.add(expanded)
+
             if expanded == target:
                 path = self.path_from_parents(target, parents)
                 cost = self.cost_from_path(path, real_cost)
@@ -273,16 +347,28 @@ class Graph:
                 return SearchResults(path, cost, distance, visited, end - start)
 
             for to_visit in self.edges[expanded]:
-                if to_visit not in parents and can_pass(expanded, to_visit):
+                if to_visit not in definitive and can_pass(expanded, to_visit):
                     total_cost = limit_costs[expanded] + limit_cost(expanded, to_visit)
                     if total_cost < cost_limit:
-                        g_cost_to_visit = g_cost_expanded + self.edges[expanded][to_visit]
+                        g_cost_to_visit = g_cost_expanded + real_cost(expanded, to_visit)
                         h_cost_to_visit = g_cost_to_visit + heuristic(to_visit)
 
-                        heapq.heappush(edge, (h_cost_to_visit, g_cost_to_visit, to_visit))
-                        parents[to_visit] = expanded
-                        limit_costs[to_visit] = total_cost
+                        if to_visit not in costs:
+                            parents[to_visit] = expanded
+                            costs[to_visit] = g_cost_to_visit
+                            limit_costs[to_visit] = total_cost
+                            heapq.heappush(edge, (h_cost_to_visit, g_cost_to_visit, to_visit))
+                        elif g_cost_to_visit < costs[to_visit]:
+                            parents[to_visit] = expanded
+                            costs[to_visit] = g_cost_to_visit
 
+                            # Decrease-key min heap (can be done in log(n) time but I'm stupid)
+                            for i, (_h, _g, node) in enumerate(edge):
+                                if node == to_visit:
+                                    edge[i] = (h_cost_to_visit, g_cost_to_visit, to_visit)
+                            heapq.heapify(edge)
+
+                            limit_costs[to_visit] = min(total_cost, limit_costs[to_visit])
 
         end = time.process_time()
         return SearchResults(None, None, None, list(parents), end - start)
@@ -298,8 +384,20 @@ class Graph:
                    heuristic: Callable[[int], float]) -> SearchResults:
 
         match algorithm:
-            case SearchAlgorithm.DFS:
-                return self.raw_dfs(source, target, cost_limit, real_cost, can_pass, limit_cost)
+            case SearchAlgorithm.DFS_FAST:
+                return self.raw_dfs_fast(source,
+                                         target,
+                                         cost_limit,
+                                         real_cost,
+                                         can_pass,
+                                         limit_cost)
+            case SearchAlgorithm.DFS_CORRECT:
+                return self.raw_dfs_fast(source,
+                                         target,
+                                         cost_limit,
+                                         real_cost,
+                                         can_pass,
+                                         limit_cost)
             case SearchAlgorithm.ITERATIVE:
                 return self.raw_iterative(source,
                                           target,

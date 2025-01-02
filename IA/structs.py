@@ -20,10 +20,12 @@ from dataclasses import dataclass
 
 @dataclass
 class Vehicle:
+    name: str            # Vehicle name
     max_fuel: float      # km (adusted to weather)
     max_weight: float    # kg
     worst_weather: float # [0, 1]
     speed: float         # m/s
+    image: str           # Path to image (64x64 BMP)
 
     def calculate_spent_fuel(self, cost: float, weather: float) -> float:
         return cost * (1 + weather) # Spend more fuel when weather is worse
@@ -32,28 +34,7 @@ class Vehicle:
         return (cost * (1 + weather)) / self.speed
 
     def __hash__(self) -> int:
-        return hash(type(self).__name__)
-
-class Person(Vehicle):
-    def __init__(self) -> None:
-        super().__init__(2000, 10, 1.0, 1.5)
-
-class Motorcycle(Vehicle):
-    def __init__(self) -> None:
-        super().__init__(6000, 20, 0.9, 5.0)
-
-class Car(Vehicle):
-    def __init__(self) -> None:
-        super().__init__(10000, 30, 0.7, 4.0)
-
-@dataclass
-class DistributionCenter:
-    node: int
-
-@dataclass
-class DeliveryTarget:
-    name: str
-    node: int
+        return hash(self.name)
 
 @dataclass
 class Product:
@@ -63,3 +44,15 @@ class Product:
 
     def __hash__(self) -> int:
         return hash(self.name)
+
+@dataclass
+class DistributionCenter:
+    name: str
+    node: int
+    vehicles: dict[Vehicle, int]
+
+@dataclass
+class DeliveryTarget:
+    name: str
+    node: int
+    products: dict[Product, int]

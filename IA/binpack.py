@@ -20,19 +20,19 @@ from dataclasses import dataclass
 import itertools
 import random
 
-from IA.Distribution import Vehicle, Product
-
-@dataclass
-class BinPackingResult:
-    results: list[tuple[Vehicle, list[Product]]]
+from IA.structs import Vehicle, Product
 
 GENERATIONS = 1000
 POPULATION_SIZE = 100
 BREEDERS = 10
 
-def genetic_bin_pack(vehicle_costs: dict[Vehicle, float],
-                     vehicles: dict[Vehicle, int],
-                     products: dict[Product, int]) -> BinPackingResult:
+@dataclass
+class BinPackingResult:
+    results: list[tuple[Vehicle, list[Product]]]
+
+def bin_pack(vehicle_costs: dict[Vehicle, float],
+             vehicles: dict[Vehicle, int],
+             products: dict[Product, int]) -> BinPackingResult:
 
     products_list = list(itertools.chain(*[[p] * i for p, i in products.items()]))
     vehicles_list = list(itertools.chain(*[[v] * i for v, i in vehicles.items()]))
