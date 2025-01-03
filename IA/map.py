@@ -18,6 +18,7 @@
 
 import math
 from enum import Enum
+import random
 from typing import NamedTuple, Optional
 
 from bs4 import BeautifulSoup
@@ -45,6 +46,7 @@ class Map(Graph):
                  distribution_center: DistributionCenter) -> None:
 
         super().__init__()
+        self.enable_weather = enable_weather
         self.coordinates: dict[int, Point] = {}
         self.weather: dict[tuple[int, int], float] = {}
         self.distribution_center = distribution_center
@@ -143,7 +145,10 @@ class Map(Graph):
             return vehicle.calculate_travel_time(distance, weather)
 
         def can_pass(source: int, target: int) -> bool:
-            # TODO - add random weather
+            if self.enable_weather and random.random() < 0.001:
+                self.weather[(source, target)] = min(vehicle.worst_weather + 0.01, 1.0)
+                return False
+
             return self.weather[(source, target)] <= vehicle.worst_weather
 
         def limit_cost(source: int, target: int) -> float:
