@@ -3,6 +3,7 @@
 \usepackage{amsmath}
 \usepackage{array}
 \usepackage[portuguese]{babel}
+\usepackage{chngpage}
 \usepackage{cite}
 \usepackage{float}
 \usepackage[a4paper, margin=2cm]{geometry}
@@ -115,9 +116,87 @@ $$
 A única diferença entre este algoritmo e o algoritmo de Dijkstra é a ordem dos nós na fila de
 espera, que passam a estar ordenados pela soma da sua distância à origem da procura com a sua
 heurística. Quando a heurística é cartesiana, já não é possível evitar o cálculo das raízes
-quadradas como na pesquisa gulosa, visto que é necessário que a heurística não sobreestime o custo
+quadradas como na procura gulosa, visto que é necessário que a heurística não sobreestime o custo
 entre dois nós caso se deseje que o algoritmo devolva a solução ótima de um problema de procura
 \cite{aima}.
+
+\subsection{Comparação dos algoritmos de procura}
+
+Para comparar o desempenho e a qualidade das soluções dos vários algoritmos, estes foram executado,
+no grafo apresentado, entre o centro de distribuição e os vários pontos de recolha de bens. Os
+testes foram realizados com as condições meteorológicas desativadas, considerando um veículo de
+alcance ilimitado. Ademais, foram testados todos os algoritmos com exceção da procura iterativa
+(devido ao seu longo tempo de execução), e os algoritmos de procura informada foram testados com
+duas heurísticas, uma baseada na distância cartesiana e a outra na distância de Manhattan. Foram
+várias as métricas recolhidas, e os dados completos podem ser observados no anexo
+\ref{comparison-data}. Aqui, apresentam-se as somas das métricas para todos os destinos,
+procurando-se apresentar uma visão mais geral dos resultados obtidos:
+
+\begin{table}[H]
+    \small
+
+    \begin{adjustwidth}{-1.5cm}{-1.5cm}
+        \begin{center}
+            \begin{tabular}{|l|r|r|r|r|}
+                \hline
+                                               &
+                    $\Sigma_\text{Tempo}$ (ms) &
+                    $\Sigma_\text{Custo}$      &
+                    $\Sigma_{N\text{nós}}$     &
+                    $\Sigma_{N\text{visitas}}$ \\
+
+                \hline
+                DFS & 72,78 & 196564,98 & 8408 & 31799 \\
+                \hline
+                BFS & 37,01 & 13118,15 & 356 & 29391 \\
+                \hline
+                Dijkstra & 97,58 & 12411,22 & 405 & 36109 \\
+                \hline
+                Greedy (Cart) & 73,47 & 40882,16 & 1805 & 12357 \\
+                \hline
+                Greedy (Man) & 52,14 & 20596,48 & 732 & 9468 \\
+                \hline
+                A* (Cart) & 25,58 & 12411,22 & 405 & 7570 \\
+                \hline
+                A* (Man) & 7,67 & 12596,46 & 428 & 2830 \\
+                \hline
+            \end{tabular}
+        \end{center}
+    \end{adjustwidth}
+
+    \caption{Somas das diversas métricas recolhidas nos testes dos vários algoritmos de procura.}
+\end{table}
+
+Como esperado, tanto o algoritmo de Dijkstra como o A* (com heurística cartesiana) são capazes de
+encontrar as soluções ótimas dos problemas de procura. No entanto, o A* não exige nem tanto tempo de
+execução nem tanta memória, uma vez que o uso da heurística regula a ordem de visita dos nós e
+permite que um menor número destes tenha de ser visitado.
+
+Quando o A* é utilizado com a heurística baseada na distância de Manhattan, nem sempre resulta na
+solução ótima. Isso é esperado, visto que apenas é garantido que o algoritmo A* seja ótimo quando
+a heurística não sobreestima o custo entre nós \cite{aima}, o que não é verdade com a distância de
+Manhattan. No entanto, esta heurística é de cálculo mais rápido e, no grafo utilizado, reduz o
+número de nós visitados significativamente, diminuindo consideravelmente o tempo de execução e o uso
+de memória do A* (quando comparado com a heurística cartesiana). Considerando isto e o facto de que
+as soluções obtidas apresentam um custo muito próximo do ótimo, este algoritmo é o que melhor
+equilibra entre tempo de execução e qualidade da solução.
+
+Nos problemas de procura apresentados, caso não fosse possível implementar algoritmos de procura
+informada, a procura em largura não seria uma má escolha de algoritmo. Ao contrário do algoritmo de
+Dijkstra, a procura em largura não é ótima, visto que o grafo é pesado. No entanto, as soluções
+encontradas são próximas da ótima, e tanto o tempo de processamento necessário como os requisitos de
+memória (número de visitas) são menores do que os do algoritmo de Dijkstra, tornando este algoritmo
+viável caso a solução ótima não seja necessária. Uma forma de obter a solução ótima com a procura em
+largura seria uma pré-discretização do grafo, ou seja, inserir nós em arcos longos para garantir que
+todos os arcos têm o mesmo custo / comprimento.
+
+Por último, os algoritmos de procura em profundidade e de procura gulosa foram os que apresentaram
+as piores soluções, visto que não têm em consideração o custo das soluções encontradas, e apenas se
+"preocupam"{} com arranjar uma solução válida. A procura gulosa, devido ao uso de uma heurística,
+gera, a partir da origem, caminhos na direção do destino, diminuindo o seu comprimento (e
+consequentemente o custo da solução) e o número de nós visitados (requirindo menos memória). Por
+outro lado, a procura em profundidade, como não utiliza uma heurística, várias vezes gera uma
+solução que consiste em dar uma "volta"{} ao mapa antes de chegar ao destino.
 
 \section{Algoritmo para empacotamento}
 
@@ -174,5 +253,178 @@ custo existe, uma possível mutação é a alteração de veículo de todos os p
     \bibitem{aima} S. Russel and P. Norvig, \emph{Artificial Intelligence -- A Modern Approach},
         4th ed. USA: Pearson, 2021.
 \end{thebibliography}
+
+\section{Anexos}
+
+\subsection{Resultados da comparação dos algoritmos de procura}
+\label{comparison-data}
+
+\begin{table}[H]
+    \small
+
+    \begin{adjustwidth}{-1.5cm}{-1.5cm}
+        \begin{center}
+            \begin{tabular}{|l|r|r|r|r|r|r|r|r|}
+                \hline
+                    Tempo (ms)  &
+                    Tribunal    &
+                    ESAS        &
+                    INL         &
+                    Cemitério   &
+                    UMinho      &
+                    Olimpo      &
+                    Happy China &
+                    $\Sigma$    \\
+
+                \hline
+                DFS & 0,54 & 21,73 & 6,32 & 15,55 & 6,99 & 10,06 & 11,59 & 72,78 \\
+                \hline
+                BFS & 1,09 & 4,85 & 2,35 & 3,11 & 7,24 & 9,87 & 8,5 & 37,01 \\
+                \hline
+                Dijkstra & 5,87 & 18,69 & 10,04 & 8,24 & 16,59 & 20,87 & 17,28 & 97,58 \\
+                \hline
+                Greedy (Cart) & 0,2 & 55,76 & 0,37 & 15,53 & 0,84 & 0,45 & 0,32 & 73,47 \\
+                \hline
+                Greedy (Man) & 0,14 & 0,52 & 0,33 & 49,75 & 0,78 & 0,37 & 0,25 & 52,14 \\
+                \hline
+                A* (Cart) & 0,65 & 2,55 & 1,61 & 3,25 & 1,62 & 12,85 & 3,05 & 25,58 \\
+                \hline
+                A* (Man) & 0,36 & 1,35 & 1,17 & 2,55 & 0,54 & 1,04 & 0,66 & 7,67 \\
+                \hline
+            \end{tabular}
+        \end{center}
+    \end{adjustwidth}
+
+    \caption{
+        Tempo de CPU para a execução de cada algoritmo de procura, entre o Bar Académico e os
+        destinos apresentados.
+    }
+\end{table}
+
+\begin{table}[H]
+    \small
+
+    \begin{adjustwidth}{-1.5cm}{-1.5cm}
+        \begin{center}
+            \begin{tabular}{|l|r|r|r|r|r|r|r|r|}
+                \hline
+                    Custo       &
+                    Tribunal    &
+                    ESAS        &
+                    INL         &
+                    Cemitério   &
+                    UMinho      &
+                    Olimpo      &
+                    Happy China &
+                    $\Sigma$    \\
+
+                \hline
+                DFS & 5315,16 & 4970,64 & 32428,01 & 40269,65 & 28219,21 & 42881,52 & 42480,79 & 196564,98 \\
+                \hline
+                BFS & 1010,32 & 2200,89 & 1683,98 & 1250,39 & 2242,19 & 2741,26 & 1989,12 & 13118,15 \\
+                \hline
+                Dijkstra & 1010,32 & 2158,87 & 1432,5 & 1250,39 & 1884,8 & 2717,2 & 1957,14 & 12411,22 \\
+                \hline
+                Greedy (Cart) & 1277,28 & 2305,31 & 2250,09 & 23491,25 & 4802,74 & 3797,38 & 2958,11 & 40882,16 \\
+                \hline
+                Greedy (Man) & 1291,62 & 2712,37 & 2671,13 & 2231,37 & 4934,5 & 3797,38 & 2958,11 & 20596,48 \\
+                \hline
+                A* (Cart) & 1010,32 & 2158,87 & 1432,5 & 1250,39 & 1884,8 & 2717,2 & 1957,14 & 12411,22 \\
+                \hline
+                A* (Man) & 1028,1 & 2179,62 & 1566,73 & 1250,39 & 1884,8 & 2717,2 & 1969,62 & 12596,46 \\
+                \hline
+            \end{tabular}
+        \end{center}
+    \end{adjustwidth}
+
+    \caption{
+        Custo das soluções dos vários algoritmos de procura, entre o Bar Académico e os destinos
+        apresentados.
+    }
+\end{table}
+
+\begin{table}[H]
+    \small
+
+    \begin{adjustwidth}{-1.5cm}{-1.5cm}
+        \begin{center}
+            \begin{tabular}{|l|r|r|r|r|r|r|r|r|}
+                \hline
+                    Nós na solução &
+                    Tribunal       &
+                    ESAS           &
+                    INL            &
+                    Cemitério      &
+                    UMinho         &
+                    Olimpo         &
+                    Happy China    &
+                    $\Sigma$       \\
+
+                \hline
+                DFS & 226 & 199 & 1384 & 1697 & 1157 & 1884 & 1861 & 8408 \\
+                \hline
+                BFS & 25 & 44 & 33 & 37 & 56 & 95 & 66 & 356 \\
+                \hline
+                Dijkstra & 25 & 68 & 35 & 37 & 74 & 96 & 70 & 405 \\
+                \hline
+                Greedy (Cart) & 45 & 49 & 91 & 1228 & 176 & 128 & 88 & 1805 \\
+                \hline
+                Greedy (Man) & 41 & 63 & 101 & 121 & 190 & 128 & 88 & 732 \\
+                \hline
+                A* (Cart) & 25 & 68 & 35 & 37 & 74 & 96 & 70 & 405 \\
+                \hline
+                A* (Man) & 26 & 58 & 68 & 37 & 74 & 96 & 69 & 428 \\
+                \hline
+            \end{tabular}
+        \end{center}
+    \end{adjustwidth}
+
+    \caption{
+        Número de nós nas soluções dos vários algoritmos de procura, entre o Bar Académico e os
+        destinos apresentados.
+    }
+\end{table}
+
+\begin{table}[H]
+    \small
+
+    \begin{adjustwidth}{-1.5cm}{-1.5cm}
+        \begin{center}
+            \begin{tabular}{|l|r|r|r|r|r|r|r|r|}
+                \hline
+                    Nós visitados &
+                    Tribunal      &
+                    ESAS          &
+                    INL           &
+                    Cemitério     &
+                    UMinho        &
+                    Olimpo        &
+                    Happy China   &
+                    $\Sigma$      \\
+
+                \hline
+                DFS & 255 & 8888 & 2881 & 6839 & 3136 & 4547 & 5253 & 31799 \\
+                \hline
+                BFS & 914 & 3857 & 2048 & 2593 & 5646 & 7738 & 6595 & 29391 \\
+                \hline
+                Dijkstra & 2379 & 6779 & 3909 & 3210 & 5929 & 7734 & 6169 & 36109 \\
+                \hline
+                Greedy (Cart) & 46 & 8885 & 99 & 2894 & 216 & 129 & 88 & 12357 \\
+                \hline
+                Greedy (Man) & 42 & 120 & 101 & 8766 & 221 & 130 & 88 & 9468 \\
+                \hline
+                A* (Cart) & 216 & 786 & 537 & 1061 & 519 & 3501 & 950 & 7570 \\
+                \hline
+                A* (Man) & 133 & 453 & 457 & 947 & 220 & 362 & 258 & 2830 \\
+                \hline
+            \end{tabular}
+        \end{center}
+    \end{adjustwidth}
+
+    \caption{
+        Número de nós visitados na execução dos vários algoritmos de procura, entre o Bar Académico
+        e os destinos apresentados.
+    }
+\end{table}
 
 \end{document}
