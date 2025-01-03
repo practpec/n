@@ -1,6 +1,7 @@
 \documentclass[12pt, a4paper]{article}
 
 \usepackage{amsmath}
+\usepackage{amssymb}
 \usepackage{array}
 \usepackage[portuguese]{babel}
 \usepackage{caption}
@@ -10,8 +11,10 @@
 \usepackage[a4paper, margin=2cm]{geometry}
 \usepackage{graphicx}
 \usepackage{hyperref}
+\usepackage{listings}
 \usepackage{longtable}
 \usepackage{setspace}
+\usepackage{xcolor}
 
 \chardef\_=`_
 
@@ -51,6 +54,161 @@
 \pagenumbering{gobble}
 \pagebreak
 \pagenumbering{arabic}
+
+\section{Descrição do problema}
+
+Durante um furação na cidade de Braga, foram vários os edifícios que ficaram sem água e sem energia
+elétrica. Por este motivo, poucos comerciantes puderam abrir portas, e foi necessário distribuir
+alimentos pela cidade. Na freguesia de São Vítor, foram estabelecidos vários pontos de recolha:
+Tribunal, Escola Secundária Alberto Sampaio, Instituto de Nanotecnologia, Cemitério de Monte d'Arcos,
+Universidade de Minho, Escola de Medicina da Universidade do Minho (Olimpo) e a loja Happy China.
+Estes locais devem ser supridos por um centro de distribuição, que se localiza no Bar Académico.
+
+Cada ponto de recolha tem a sua urgência, ou seja, a partir de um determinado instante de tempo,
+pode já ser demasiado tarde para entregar os bens necessários. Surge um problema de otimização, onde
+se pretende distribuir bens ao máximo número de pontos de recolha, antes de cada ponto de recolha
+fechar.
+
+Cada ponto de recolha precisa de um número exato de cada produto, e o centro de distribuição faz as
+várias entregas utilizando um número limitado de veículos. Cada produto tem o seu peso, e cada
+veículo tem um limite de peso que pode transportar, sendo necessário distribuir-se os bens pelos
+veículos de um modo correto. Ademais, os veículos viajam a diferentes velocidades, têm diferentes
+limites de distância, e nem todos os veículos são capazes de viajar em todas as condições
+meteorológicas. Deste modo, é necessário escolher-se os veículos a utilizar para fazer cada entrega
+de um modo eficiente.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.35\textwidth]{res/PontosImportantes.png}
+    \caption{
+        Grafo utilizado, com o centro de distribuição assinalado a azul e os pontos de recolha a
+        vermelho.
+    }
+\end{figure}
+
+\section{Formulação do problema}
+
+\subsection{Problema de distribuição}
+
+Considere-se a topologia apresentada acima, e os produtos, veículos, e pontos de recolha com as
+características enunciadas no anexo \ref{problem-data}. Os mesmos dados podem ser encontrados em
+formato JSON no anexo \ref{problem-data-json}, tal como são importados pela aplicação.
+
+Um estado deste problema pode ser definido como $E = (t, V_c, V_a, P, (R_1, R_2, \ldots, R_n))$,
+onde:
+
+\begin{itemize}
+    \item $t$ é o instante de tempo atual;
+    \item $V_c$ é o multiconjunto de veículos no centro de distribuição;
+    \item $V_a$ é o multiconjunto de veículos em andamento;
+    \item $P$ é o multiconjunto de produtos no centro de distribuição;
+    \item $R_1, R_2, \ldots, R_n$ são os pontos de recolha;
+\end{itemize}
+
+Cada veículo em andamento pode decomposto em $\beta = (t_c, v)$, onde:
+
+\begin{itemize}
+    \item $t_c$ é o instante de tempo em que o veículo regressa ao centro de distribuição;
+    \item $v$ é o veículo em viagem.
+\end{itemize}
+
+Ademais, cada ponto de recolha pode ser decomposto em $R_k = (t_k, P_k)$, onde:
+
+\begin{itemize}
+    \item $t_k$ é o instante de tempo máximo onde o ponto de recolha pode receber bens.
+    \item $P_k$ é o multiconjunto de produtos em falta no ponto de recolha.
+\end{itemize}
+
+O problema de distribuição pode ser formulado do seguinte modo:
+
+\textbf{Tipo de problema:} Como as condições meteorológicas variam durante a simulação, o ambiente é
+não determinístico. Como o espaço de estados é conhecido, o problema é de contingência.
+
+\textbf{Estado inicial:} $E = (0, V_c, \varnothing, P, (R_1, R_2, \ldots, R_7))$, onde $V_c$, $P$, e
+todo o $R_k$ são definidos de acordo com os conteúdos do anexo \ref{problem-data}. Exemplificando um
+elemento de cada tipo, tem-se:
+
+\begin{itemize}
+    \item $V_c = \lbrace \text{Pessoa}: 5, \text{Mota}: 2, \text{Carro}: 2 \rbrace$;
+    \item $P = \lbrace \text{Garrafa de água}: 200, \ldots, \text{Botija de butano}: 10 \rbrace$;
+    \item $R_1 = (300, \lbrace \text{Garrafa de água}: 1 \rbrace)$ {\color{gray} (tribunal)};
+    \item \ldots
+\end{itemize}
+
+\textbf{Operadores de mudança de estado:}
+
+Uma possível mudança de estado resulta do envio de um veículo para um ponto de recolha. Considere-se
+um ponto de recolha $R_k = (t_k, P_k)$, um conjunto de produtos $P_s$ tal que $P_s \subset P$ e
+$P_s \subset P_k$, e um veículo $v$ cujo limite de peso não seja inferior à soma dos pesos dos
+produtos em $P_s$.
+
+Caso exista um caminho de custo $t_v$ entre o centro de distribuição e o ponto de recolha (ver
+subproblema \ref{subproblem}), o veículo chegará ao ponto de recolha em $t_v$, e retornará ao centro
+de distribuição em $2t_v$, visto que o grafo do problema é orientado. Caso $t + t_v \le t_k$ (o
+veículo chega ao ponto de recolha antes deste fechar), é possível a mudança para o seguinte estado:
+
+$$
+E = \left (
+    t,
+    V_c - \left \lbrace v \right \rbrace,
+    V_a \cup \left \lbrace (t + 2t_v, v) \right \rbrace,
+    P - P_s,
+    \left ( \ldots, (t_k, P_k - P_s), \ldots \right )
+\right ),
+$$
+
+onde o símbolo de subtração denota a diferença entre multiconjuntos. Considerou-se, que os produtos
+enviados, apesar de ainda não terem chegado ao ponto de recolha, já não são precisos pelo mesmo. Tal
+pode ser feito porque se tem a certeza que o veículo enviado chegará a tempo ao ponto de recolha.
+
+Outra possível mudança de estado é a espera por um veículo. Seja $\beta = (t_c, v) \in V_a$ o
+veículo com o menor valor de tempo de chegada ($t_c$) em $V_a$. É, então, possível transitar para o
+seguinte estado:
+
+$$
+E = \left (
+    t_c,
+    V_c \cup \left \lbrace v \right \rbrace,
+    V_a - \left \lbrace \beta \right \rbrace,
+    P,
+    (R_1, R_2, \ldots, R_n)
+\right )
+$$
+
+\textbf{Estado objetivo:} Tratando-se de um problema de otimização, o(s) estado(s) objetivo,
+desconhecido(s), é/são aquele(s) que apresenta(m) o menor número de pontos de recolha com pelo menos
+um produto em necessidade.
+
+\textbf{Custo da solução:} Como o problema é de otimização, o que importa é o estado da solução, e
+não o custo do caminho para alcançá-lo.
+
+\subsection{Subproblema de procura de caminho}
+\label{subproblem}
+
+Considere-se o grafo apresentado, o nó correspondente ao centro de distribuição, $o$, e o nó
+correspondente a um ponto de recolha, $d$. Considere-se também um veículo com um limite de
+combustível $c_\text{max}$, um limite de condições meteorológicas $m_\text{max}$, e uma velocidade
+$v$. Um estado deste problema pode ser dado como $E = (c, n)$, um nível de combustível junto à
+posição atual do veículo. O problema de procura de caminho pode ser formulado do seguinte modo:
+
+\textbf{Tipo de problema:} Como as condições meteorológicas variam durante a simulação, o ambiente é
+não determinístico. Como o espaço de estados é conhecido, o problema é de contingência.
+
+\textbf{Estado inicial:} $E = (c_\text{max}, o)$.
+
+\textbf{Operador de mudança de estado:} Seja $n'$ um nó adjacente a $n$. O combustível necessário
+para viajar entre $n$ e $n'$ é dado por $c_n = d(n, n') \times (1 + m(n, n'))$, onde $d$ calcula a
+distância entre dois nós e $m$ as condições meteorológicas numa aresta entre dois nós, um valor
+entre 0,0 e 1,0. Caso $c_n \le c$, e $m(n, n') \le m_\text{max}$, é possível transitar para o estado
+$E = (c - c_n, n')$.
+
+\textbf{Estado final:} $E = (c, d)$, onde $c$, o combustível restante, é um qualquer valor
+não-negativo.
+
+\textbf{Custo da solução:} O custo da solução é o tempo de viagem total, ou seja, a soma dos tempos
+de viagem em cada aresta percorrida. O tempo de viagem numa aresta é dado por:
+
+$$t_{n \rightarrow n'} = {d(n, n') \times (1 + m(n, n')) \over v}$$
 
 \section{Obtenção e representação do mapa}
 
@@ -225,9 +383,9 @@ todos os arcos têm o mesmo custo / comprimento.
 
 Por último, os algoritmos de procura em profundidade e de procura gulosa foram os que apresentaram
 as piores soluções, visto que não têm em consideração o custo das soluções encontradas, e apenas se
-"preocupam"{} com arranjar uma solução válida. A procura gulosa, devido ao uso de uma heurística,
-gera, a partir da origem, caminhos na direção do destino, diminuindo o seu comprimento (e
-consequentemente o custo da solução) e o número de nós visitados (requirindo menos memória). Por
+"preocupam"{} com arranjar uma solução satisfatória. A procura gulosa, devido ao uso de uma
+heurística, gera, a partir da origem, caminhos na direção do destino, diminuindo o seu comprimento
+(e consequentemente o custo da solução) e o número de nós visitados (requirindo menos memória). Por
 outro lado, a procura em profundidade, como não utiliza uma heurística, várias vezes gera uma
 solução que consiste em dar uma "volta"{} ao mapa antes de chegar ao destino.
 
@@ -342,6 +500,199 @@ entregas aos pontos de recolha, e a incapacidade de satisfazer um ponto de recol
 \end{thebibliography}
 
 \section{Anexos}
+
+\subsection{Dados para a resolução do problema}
+\label{problem-data}
+
+\begin{table}[H]
+    \small
+
+    \begin{adjustwidth}{-1.5cm}{-1.5cm}
+        \begin{center}
+            \begin{tabular}{|l|r|r|r|r|r|}
+                \hline
+                                                &
+                    Combustível (m)             &
+                    Peso máximo (kg)            &
+                    Pior tempo &
+                    Velocidade (m/s)            &
+                    Quantidade disponível \\
+
+                \hline
+                Pessoa & 2000,0  & 10,0 & 1,0 & 2,0 & 5 \\
+                \hline
+                Moto   & 6000,0  & 20,0 & 0,9 & 1,5 & 2 \\
+                \hline
+                Carro  & 10000,0 & 30.0 & 0,7 & 1,0 & 2 \\
+                \hline
+            \end{tabular}
+        \end{center}
+    \end{adjustwidth}
+
+    \caption{Características dos veículos.}
+\end{table}
+
+Considerou-se que, durante uma catástrofe naturais, quanto maior o veículo, maior será a dificuldade
+de o manobrar em mau tempo, pelo que carros e motocicletas são mais lentas do que pessoas a pé.
+
+\begin{table}[H]
+    \small
+
+    \begin{adjustwidth}{-1.5cm}{-1.5cm}
+        \begin{center}
+            \begin{tabular}{|l|r|r|}
+                \hline
+                & Peso (kg)
+                & Quantidade disponível \\
+
+                \hline
+                Garrafa de água & 2,0 & 200 \\
+                \hline
+                Saco de farinha & 3,0 & 100 \\
+                \hline
+                Carne congelada & 4,0 & 40 \\
+                \hline
+                Vegetais congelados & 5,0 & 40 \\
+                \hline
+                Botija de butano & 9,0 & 10 \\
+                \hline
+            \end{tabular}
+        \end{center}
+    \end{adjustwidth}
+
+    \caption{Características dos produtos.}
+\end{table}
+
+\begin{table}[H]
+    \small
+
+    \begin{adjustwidth}{-1.5cm}{-1.5cm}
+        \begin{center}
+            \begin{tabular}{|l|r|}
+                \hline
+                & Tempo limite (s) \\
+
+                \hline
+                Tribunal & 300,0 \\
+                \hline
+                ESAS & 2000,0 \\
+                \hline
+                INL & 7000,0 \\
+                \hline
+                Cemitério & 7500,0 \\
+                \hline
+                UMinho & 8000,0 \\
+                \hline
+                Olimpo & 12000,0 \\
+                \hline
+                Happy China & 15000,0 \\
+                \hline
+
+            \end{tabular}
+        \end{center}
+    \end{adjustwidth}
+
+    \caption{Instantes de tempo limite onde os pontos de recolha podem receber bens.}
+\end{table}
+
+
+\begin{table}[H]
+    \small
+
+    \begin{adjustwidth}{-1.5cm}{-1.5cm}
+        \begin{center}
+            \begin{tabular}{|l|r|r|r|r|r|}
+                \hline
+                                    &
+                Garrafa de água     &
+                Saco de farinha     &
+                Carne congelada     &
+                Vegetais congelados &
+                Botija de butano    \\
+
+                \hline
+                Tribunal & 1 & 0 & 0 & 0 & 0 \\
+                \hline
+                ESAS & 5 & 2 & 1 & 0 & 1 \\
+                \hline
+                INL & 0 & 0 & 1 & 1 & 1 \\
+                \hline
+                Cemitério & 0 & 0 & 0 & 0 & 3 \\
+                \hline
+                UMinho & 6 & 3 & 2 & 2 & 0 \\
+                \hline
+                Olimpo & 0 & 30 & 0 & 0 & 0 \\
+                \hline
+                Happy China & 1 & 0 & 0 & 0 & 0 \\
+                \hline
+            \end{tabular}
+        \end{center}
+    \end{adjustwidth}
+
+    \caption{Necessidades de cada ponto de recolha}
+\end{table}
+
+\subsection{Dados para a resolução do problema em format JSON}
+\label{problem-data-json}
+
+\lstdefinestyle{codestyle}{
+    basicstyle=\ttfamily\small,
+    breakatwhitespace=false,
+    breaklines=false,
+    keepspaces=true,
+    numbers=none,
+    showspaces=false,
+    showstringspaces=false,
+    showtabs=false,
+    tabsize=4,
+}
+
+\lstset{
+    style=codestyle,
+    inputencoding=utf8,
+    extendedchars=true,
+    literate=%
+    {á}{{\'{a}}}1
+    {à}{{\`{a}}}1
+    {â}{{\^{a}}}1
+    {ã}{{\~{a}}}1
+    {Á}{{\'{A}}}1
+    {Â}{{\^{A}}}1
+    {Ã}{{\~{A}}}1
+    {Â}{{\^{A}}}1
+    {é}{{\'{e}}}1
+    {è}{{\`{e}}}1
+    {ê}{{\^{e}}}1
+    {É}{{\'{E}}}1
+    {È}{{\`{E}}}1
+    {Ê}{{\^{E}}}1
+    {í}{{\'{i}}}1
+    {ì}{{\`{i}}}1
+    {î}{{\^{i}}}1
+    {Î}{{\^{I}}}1
+    {Ì}{{\`{I}}}1
+    {Î}{{\^{I}}}1
+    {ó}{{\'{o}}}1
+    {ò}{{\`{o}}}1
+    {õ}{{\~{o}}}1
+    {ô}{{\^{o}}}1
+    {Õ}{{\~{O}}}1
+    {Ó}{{\'{O}}}1
+    {Ò}{{\`{O}}}1
+    {õ}{{\~{o}}}1
+    {Ô}{{\^{O}}}1
+    {ú}{{\'{u}}}1
+    {ù}{{\`{u}}}1
+    {û}{{\^{u}}}1
+    {Ú}{{\'{U}}}1
+    {Ù}{{\`{U}}}1
+    {Û}{{\^{U}}}1
+    {ç}{{\c{c}}}1
+    {Ç}{{\c{C}}}1
+    {€}{{\euro}}1
+}
+
+\lstinputlisting{../res/SaoVitor.json}
 
 \subsection{Resultados da comparação dos algoritmos de procura}
 \label{comparison-data}
