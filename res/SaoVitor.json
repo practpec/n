@@ -74,7 +74,7 @@
         "Olimpo": {
             "name": "Olimpo",
             "node": 1193997031,
-            "time-limit": 12000,
+            "time-limit": 20000,
             "products": {
                 "Bag of flour": 30
             }
@@ -82,7 +82,7 @@
         "Happy China": {
             "name": "Happy China",
             "node": 4674683655,
-            "time-limit": 15000,
+            "time-limit": 22000,
             "products": {
                 "Water bottle": 1
             }
