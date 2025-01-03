@@ -3,6 +3,7 @@
 \usepackage{amsmath}
 \usepackage{array}
 \usepackage[portuguese]{babel}
+\usepackage{caption}
 \usepackage{chngpage}
 \usepackage{cite}
 \usepackage{float}
@@ -33,6 +34,8 @@
 }
 
 \date{3 de janeiro de 2025 \vspace*{\fill}}
+
+\captionsetup{font=onehalfspacing}
 
 \begin{document}
 
@@ -244,6 +247,60 @@ mutação é a alteração do veículo no qual um produto é colocado. No entant
 algoritmo convirja para colocar todos os produtos num veículo de maior custo quando um de menor
 custo existe, uma possível mutação é a alteração de veículo de todos os produtos no mesmo veículo.
 
+\section{Apresentação da solução do problema}
+
+Quando a aplicação desenvolvida inicia, conforme os argumentos providenciados, pode ser gerada uma
+solução de um problema de distribuição, ou pode ser carregada uma solução de um ficheiro. Em ambos
+os casos, a solução será apresentada ao utilizador na interface que se procura descrever nesta
+secção. Esta interface foi desenvolvida com recurso à biblioteca \texttt{pygame}.
+
+Inicialmente, é apresentado o mapa com o centro de distribuição e os pontos de recolha. A tecla
+\texttt{W} pode ser utilizada para alternar entre mostrar as condições meteorológicas ou não.
+As setas do teclado podem utilizadas para mover o mapa na janela, e tanto o \emph{scroll} do rato
+como as teclas \texttt{+} e \texttt{-} podem ser utilizadas para controlar o fator de ampliação.
+Clicar num nó resulta na impressão de uma hiperligação para a saída textual do programa. Esta
+hiperligação redireciona o utilizador para o \emph{Open Street Maps}, permitindo que este veja em
+maior detalhe o mapa associado ao grafo apresentado.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.45\textwidth]{res/PontosImportantes.png}
+    \includegraphics[width=0.45\textwidth]{res/Tempo.png}
+    \caption{
+        Apresentação do centro de distribuição e dos pontos de recolha na UI, sem e com condições
+        meteorológicas visíveis.
+    }
+\end{figure}
+
+As teclas \texttt{Enter} e \texttt{Backspace} são utilizadas para navegar entre os diapositivos da
+apresentação da solução. Um diapositivo possível é a apresentação dos resultados de um algoritmo de
+procura. O caminho, quando existente, é apresentado a azul, e os nós visitados são apresentados a
+vermelho. Quando premida a tecla \texttt{A}, a interface anima o funcionamento do algoritmo,
+mostrando os nós pela ordem que foram visitados.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.45\textwidth]{res/Procura.png}
+    \caption{Apresentação dos resultados de um algoritmo de procura na UI.}
+\end{figure}
+
+A interface também é capaz de apresentar o resultado do algoritmo de empacotamento, a satisfação de
+entregas aos pontos de recolha, e a incapacidade de satisfazer um ponto de recolha a tempo.
+
+\begin{figure}[H]
+    \centering
+    \begin{minipage}{0.32\textwidth}
+        \includegraphics[width=\textwidth]{res/Empacotamento.png}
+    \end{minipage}
+    \begin{minipage}{0.45\textwidth}
+        \includegraphics[width=\textwidth]{res/Sucesso.png}
+        \includegraphics[width=\textwidth]{res/Morte.png}
+    \end{minipage}
+    \caption{
+        Apresentação dos resultados do algoritmo de empacotamento, da satisfação de uma entrega a um
+        ponto de recolha, e da incapacidade de satisfazer um ponto de recolha a tempo.
+    }
+\end{figure}
 \section{Conclusão}
 
 \section{Bibliografia}
