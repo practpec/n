@@ -52,6 +52,36 @@
 \pagebreak
 \pagenumbering{arabic}
 
+\section{Obtenção e representação do mapa}
+
+O mapa da freguesia de São Vítor é obtido com uma \emph{query} à \emph{Overpass API}, do projeto
+\emph{OpenStreetMap}, feita através da biblioteca Python \texttt{requests}. Foi desenvolvido um
+sistema de \emph{caching} para não ser necessária a transferência do mapa no início todas as
+execuções da aplicação desenvolvida. Do mapa, apenas são extraídas estradas (\texttt{way}s com a
+\emph{tag} \texttt{highway}), e são ignorados todos os outros tipos de via.
+
+O \emph{parsing} do XML obtido da \emph{query} à API é feito com as bibliotecas
+\texttt{BeautifulSoup} e \texttt{lxml}. Nesta etapa, o mapa pode ser configurado como sendo um grafo
+orientado (os sentidos das estradas devem ser respeitados) ou não (é possível dirigir em contramão).
+No mapa da topologia apresentado, optou-se por esta segunda opção, uma vez que se considerou que o
+código de estrada pode ser ignorado durante uma catástrofe natural onde são várias as estradas
+cortadas.
+
+Um grafo é armazenado como uma matriz de adjacência esparsa. Um dicionário associa nós (origens de
+arestas) a outro dicionário, que associa nós (destinos de arestas) a custos. Por exemplo, a
+expressão \texttt{edges[o][d] = c} quer dizer que existe uma aresta entre \texttt{o} e \texttt{d}
+de custo \texttt{c}. Num mapa, \texttt{o} e \texttt{d} são inteiros, identificadores de nós na
+base de dados do \emph{OpenStreetMap}, e \texttt{c} é um valor de vírgula flutuante. Um mapa
+armazena também outro dicionário, que associa identificadores de nós às suas coordenadas. Estas,
+durante a importação do mapa, são calculadas, de acordo com a projeção de Mercator, com base na
+latitude e longitude de cada nó.
+
+Por último, as condições meteorológicas num mapa são representadas por outro dicionário, que associa
+arestas (pares origem-destino) a valores de vírgula flutuante entre 0.0 e 1.0, os extremos do bom e
+do mau tempo, respetivamente. Para uma geração de condições meteorológicas em gradiente (sem grandes
+picos ou vales nos valores), ruído Perlin (através da biblioteca Python \texttt{perlin-noise}) foi
+utilizado.
+
 \section{Algoritmos de procura}
 
 Foram implementados diversos algoritmos de procura, para poderem ser comparados em aspetos de
