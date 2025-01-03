@@ -161,21 +161,28 @@ class Map(Graph):
             target_coords = self.coordinates[target]
 
             # Don't take sqrt (better performance for comparison only)
-            return (source_coords.x - target_coords.x) ** 2 + \
-                   (source_coords.y - target_coords.y) ** 2
+            return (
+                (source_coords.x - target_coords.x) ** 2 +
+                (source_coords.y - target_coords.y) ** 2
+            ) / vehicle.speed
 
         def cartesian_astar(source: int) -> float:
             source_coords = self.coordinates[source]
             target_coords = self.coordinates[target]
 
-            return ((source_coords.x - target_coords.x) ** 2 + \
-                   (source_coords.y - target_coords.y) ** 2) ** 0.5
+            return ((
+                (source_coords.x - target_coords.x) ** 2 +
+                (source_coords.y - target_coords.y) ** 2
+            ) ** 0.5) / vehicle.speed
 
         def manhattan(source: int) -> float:
             source_coords = self.coordinates[source]
             target_coords = self.coordinates[target]
 
-            return abs(source_coords.x - target_coords.x) + abs(source_coords.y - target_coords.y)
+            return (
+                abs(source_coords.x - target_coords.x) +
+                abs(source_coords.y - target_coords.y)
+            ) / vehicle.speed
 
         heuristic_function = {
             SearchHeuristic.CARTESIAN:

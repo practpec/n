@@ -254,7 +254,8 @@ class Problem:
         if vehicles is None:
             title += algorithm.name
             if algorithm.value >= SearchAlgorithm.GREEDY.value:
-                title += f' ({heuristic.name}): '
+                title += f' ({heuristic.name})'
+            title += ': '
         else:
             title += ' = '.join(v.name for v in vehicles) + ': '
 
