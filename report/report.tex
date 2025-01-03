@@ -445,6 +445,53 @@ mutação é a alteração do veículo no qual um produto é colocado. No entant
 algoritmo convirja para colocar todos os produtos num veículo de maior custo quando um de menor
 custo existe, uma possível mutação é a alteração de veículo de todos os produtos no mesmo veículo.
 
+\section{Resolução do problema de distribuição}
+
+O problema de distribuição é um problema de otimização computacionalmente complexo de resolver. Só a
+avaliação de uma solução exige a resolução de vários subproblemas de procura e de empacotamento.
+Logo, o algoritmo desenvolvido para o resolver é guloso, e apenas calcula e avalia uma única
+solução. No entanto, o algoritmo "pondera"{} bastante sobre cada passo da solução, procurando
+diminuir ineficiências em cada um. O algoritmo pode ser descrito pelos seguintes passos:
+
+\begin{enumerate}
+    \item Caso não haja veículos no centro de distribuição, o algoritmo espera pelo primeiro veículo
+        a chegar. O algoritmo suporta (e tira partido) de vários veículos que chegam em simultâneo.
+
+    \item O algoritmo calcula caminhos para o ponto de recolha de maior urgência, testando todos os
+        tipos de veículo disponíveis.
+
+    \item Caso nenhum veículo seja capaz de chegar ao destino a tempo, o algoritmo decide entre
+        desistir do centro de distribuição em teste e esperar por mais veículos. Irá escolher a
+        segunda opção se e só se houver veículos à espera diferentes dos presentes no centro de
+        distribuição.
+
+    \item Caso haja veículos capazes de chegar a tempo ao ponto de recolha, o algoritmo de
+        empacotamento é executado, e procura-se enviar o peso máximo possível nos veículos
+        disponíveis.
+
+    \item Caso não haja mais produtos a entregar a um centro de distribuição, ele é descartado, e o
+        algoritmo procurará suprir o de maior prioridade seguinte.
+\end{enumerate}
+
+Este algoritmo é de execução rápida, e encontra, na maior parte das vezes, a solução ótima do
+problema dado. As raras vezes restantes podem ser atribuídas a "azar"{} na geração de números
+aleatórios para o algoritmo genético de empacotamento ou para as alterações meteorológicas
+dinâmicas.
+
+Apesar deste algoritmo simples encontrar boas soluções para o problema dado, o mesmo poderia não ser
+verdade para outros problemas, com diferentes veículos e combinações de produtos. Este algoritmo
+assume que o algoritmo de empacotamento deixará pouco espaço vazio nos veículos. Assim, serão raras
+situações onde possa compensar enviar um veículo que passará por dois pontos de recolha, mas que
+demorará mais tempo a regressar ao centro de distribuição. Caso os veículos tivessem capacidades
+muito superiores, ou os pontos de recolha tivessem necessidade de um menor número de produtos, a
+possibilidade de enviar um veículo a mais do que um ponto de recolha já deveria ser considerada.
+Para avaliar se seria mais compensador enviar um veículo a passar por mais do que um ponto ou
+esperar pelo seu regresso antes de o reenviar, o algoritmo para resolução do problema de
+distribuição teria de avaliar vários caminhos na árvore de estados, um processo mais complexo e mais
+computacionalmente intensivo. Alternativamente, poderia ser possível o desenvolvimento de um
+heurística para determinar que nó deve ser visitado de seguida, mas a conceção de uma boa heurística
+o mais universal possível é bastante complicada.
+
 \section{Apresentação da solução do problema}
 
 Quando a aplicação desenvolvida inicia, conforme os argumentos providenciados, pode ser gerada uma
@@ -499,6 +546,7 @@ entregas aos pontos de recolha, e a incapacidade de satisfazer um ponto de recol
         ponto de recolha, e da incapacidade de satisfazer um ponto de recolha a tempo.
     }
 \end{figure}
+
 \section{Conclusão}
 
 \section{Bibliografia}
