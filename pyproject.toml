@@ -48,6 +48,9 @@
     Repository = "https://github.com/voidbert/IA"
     "Bug Tracker" = "https://github.com/voidbert/IA/issues"
 
+[tool.setuptools]
+py-modules = []
+
 [tool.mypy]
     disallow_untyped_defs = true
     ignore_missing_imports = true
