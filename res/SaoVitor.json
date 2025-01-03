@@ -2,16 +2,23 @@
     "map": {
         "location": "Braga (São Vítor)",
         "directed": false,
-        "enable-weather": false
+        "enable-weather": true
     },
 
     "distribution-center": {
         "name": "Bar Académico",
         "node": 439359565,
         "vehicles": {
-            "person": 20,
-            "motorcycle": 10,
-            "car": 5
+            "person": 5,
+            "motorcycle": 2,
+            "car": 2
+        },
+        "products": {
+            "Water bottle": 200,
+            "Bag of flour": 100,
+            "Frozen meat": 40,
+            "Frozen vegetables": 40,
+            "Butane bottle": 10
         }
     },
 
@@ -19,37 +26,66 @@
         "Tribunal": {
             "name": "Tribunal",
             "node": 1605296772,
-            "products": {}
+            "time-limit": 300,
+            "products": {
+                "Water bottle": 1
+            }
         },
         "Escola Secundária Alberto Sampaio": {
             "name": "Escola Secundária Alberto Sampaio",
             "node": 4090416170,
-            "products": {}
+            "time-limit": 2000,
+            "products": {
+                "Water bottle": 5,
+                "Bag of flour": 2,
+                "Frozen meat": 1,
+                "Butane bottle": 1
+            }
         },
         "Instituto de Nanotecnologia": {
             "name": "Instituto de Nanotecnologia",
             "node": 1607596806,
-            "products": {}
+            "time-limit": 7000,
+            "products": {
+                "Frozen meat": 1,
+                "Frozen vegetables": 1,
+                "Butane bottle": 1
+            }
         },
         "Cemitério": {
             "name": "Cemitério",
             "node": 2361505854,
-            "products": {}
+            "time-limit": 7500,
+            "products": {
+                "Butane bottle": 3
+            }
         },
         "Universidade do Minho": {
             "name": "Universidade do Minho",
             "node": 227110575,
-            "products": {}
+            "time-limit": 8000,
+            "products": {
+                "Water bottle": 6,
+                "Bag of flour": 3,
+                "Frozen meat": 2,
+                "Frozen vegetables": 2
+            }
         },
         "Olimpo": {
             "name": "Olimpo",
             "node": 1193997031,
-            "products": {}
+            "time-limit": 12000,
+            "products": {
+                "Bag of flour": 30
+            }
         },
         "Happy China": {
             "name": "Happy China",
             "node": 4674683655,
-            "products": {}
+            "time-limit": 15000,
+            "products": {
+                "Water bottle": 1
+            }
         }
     },
 
@@ -59,7 +95,7 @@
             "max_fuel": 2000.0,
             "max_weight": 10.0,
             "worst_weather": 1.0,
-            "speed": 1.0,
+            "speed": 2.0,
             "image": "res/person.bmp"
         },
         "motorcycle": {
@@ -67,7 +103,7 @@
             "max_fuel": 6000.0,
             "max_weight": 20.0,
             "worst_weather": 0.9,
-            "speed": 5.0,
+            "speed": 1.5,
             "image": "res/motorcycle.bmp"
         },
         "car": {
@@ -75,7 +111,7 @@
             "max_fuel": 10000.0,
             "max_weight": 30.0,
             "worst_weather": 0.7,
-            "speed": 4.0,
+            "speed": 1.0,
             "image": "res/car.bmp"
         }
     },

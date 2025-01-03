@@ -18,7 +18,7 @@
 
 import math
 from enum import Enum
-from typing import NamedTuple
+from typing import NamedTuple, Optional
 
 from bs4 import BeautifulSoup
 from perlin_noise import PerlinNoise
@@ -138,8 +138,6 @@ class Map(Graph):
                heuristic: SearchHeuristic = SearchHeuristic.CARTESIAN) -> SearchResults:
 
         def real_cost(source: int, target: int) -> float:
-            return self.edges[source][target]
-
             distance = self.edges[source][target]
             weather = self.weather[(source, target)]
             return vehicle.calculate_travel_time(distance, weather)
@@ -188,3 +186,25 @@ class Map(Graph):
                                can_pass,
                                limit_cost,
                                heuristic_function)
+
+    def results_valid_for_vehicle(self, results: SearchResults, vehicle: Vehicle) -> \
+        Optional[SearchResults]:
+
+        if results.path is None or results.cost is None:
+            return None
+
+        if results.cost >= vehicle.max_fuel:
+            return None
+
+        i = 0
+        cost = 0.0
+        while i < len(results.path) - 1:
+            distance = self.edges[results.path[i]][results.path[i + 1]]
+            weather = self.weather[(results.path[i], results.path[i + 1])]
+            if weather >= vehicle.worst_weather:
+                return None
+
+            i += 1
+            cost += vehicle.calculate_travel_time(distance, weather)
+
+        return SearchResults(results.path, cost, results.distance, results.visited, results.time)

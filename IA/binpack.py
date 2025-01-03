@@ -16,19 +16,15 @@
 #
 # -------------------------------------------------------------------------------------------------
 
-from dataclasses import dataclass
 import itertools
 import random
 
-from IA.structs import Vehicle, Product
+from IA.structs import BinPackingResult, Vehicle, Product
 
 GENERATIONS = 1000
 POPULATION_SIZE = 100
 BREEDERS = 10
-
-@dataclass
-class BinPackingResult:
-    results: list[tuple[Vehicle, list[Product]]]
+MUTATION_RATE = 0.1
 
 def bin_pack(vehicle_costs: dict[Vehicle, float],
              vehicles: dict[Vehicle, int],
@@ -58,6 +54,10 @@ def bin_pack(vehicle_costs: dict[Vehicle, float],
         return total_weight * 1e6 - gene_vehicle_costs - len(vehicle_weights)
 
     def crossover(parent1: list[int], parent2: list[int]) -> tuple[list[int], list[int]]:
+        if len(parent1) < 2:
+            options = [parent1, parent2]
+            return (random.choice(options), random.choice(options))
+
         crossover_point = random.randint(1, len(parent1) - 1)
         child1 = parent1[:crossover_point] + parent2[crossover_point:]
         child2 = parent2[:crossover_point] + parent1[crossover_point:]
@@ -86,9 +86,9 @@ def bin_pack(vehicle_costs: dict[Vehicle, float],
             parent1, parent2 = random.choices(population[-BREEDERS:], k=2)
             child1, child2 = crossover(parent1, parent2)
 
-            if random.random() < 0.1:
+            if random.random() < MUTATION_RATE:
                 child1 = mutate(child1)
-            if random.random() < 0.1:
+            if random.random() < MUTATION_RATE:
                 child2 = mutate(child2)
 
             new_population.extend([child1, child2])

@@ -23,7 +23,7 @@ import pygame
 from IA.binpack import BinPackingResult
 from IA.graph import SearchResults
 from IA.map import Map, Point
-from IA.problem import ProblemSolution
+from IA.problem import Death, ProblemSolution
 
 WINDOW_WIDTH = 800
 WINDOW_HEIGHT = 600
@@ -40,6 +40,7 @@ class UI:
         self.generate_initial_projection(pmap)
 
         pygame.init()
+        self.skull = pygame.image.load('res/skull.bmp')
         self.window = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
         pygame.display.set_caption(self.seq[self.seq_position][0])
         self.game_loop()
@@ -79,6 +80,8 @@ class UI:
 
             if isinstance(seq_event, SearchResults):
                 self.render_search_results(seq_event)
+            elif isinstance(seq_event, Death):
+                self.render_death(seq_event)
 
             pygame.display.flip()
 
@@ -222,6 +225,12 @@ class UI:
                                  (255, 255, 255),
                                  (left, product_start),
                                  (left + 63, product_start))
+
+    def render_death(self, death: Death) -> None:
+        x, y = self.point_to_screen(self.map.coordinates[death.node])
+        x -= 32
+        y -= 32
+        self.window.blit(self.skull, (x, y))
 
     def point_to_screen(self, p: Point) -> tuple[float, float]:
         initial_x = (p.x - self.translatex) * self.scale

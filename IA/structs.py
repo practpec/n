@@ -46,13 +46,44 @@ class Product:
         return hash(self.name)
 
 @dataclass
+class BinPackingResult:
+    results: list[tuple[Vehicle, list[Product]]]
+
+@dataclass
 class DistributionCenter:
-    name: str
-    node: int
-    vehicles: dict[Vehicle, int]
+    name: str                    # Presentation name
+    node: int                    # OSM node
+    vehicles: dict[Vehicle, int] # Number available of each vehicle
+    products: dict[Product, int] # Number available of each product
+
+    def discount_bin_pack(self, bp_results: BinPackingResult) -> None:
+        for vehicle, products in bp_results.results:
+            self.vehicles[vehicle] -= 1
+            if self.vehicles[vehicle] == 0:
+                del self.vehicles[vehicle]
+
+            for product in products:
+                self.products[product] -= 1
+                if self.products[product] == 0:
+                    del self.products[product]
+
 
 @dataclass
 class DeliveryTarget:
-    name: str
-    node: int
-    products: dict[Product, int]
+    name: str                    # Presentation name
+    node: int                    # OSM node
+    time_limit: float            # in seconds
+    products: dict[Product, int] # Number needed o each product
+
+    def enough_resources_to_supply(self, center: DistributionCenter) -> bool:
+        for product, n in self.products.items():
+            if center.products[product] < n:
+                return False
+        return True
+
+    def discount_bin_pack(self, bp_results: BinPackingResult) -> None:
+        for _, products in bp_results.results:
+            for product in products:
+                self.products[product] -= 1
+                if self.products[product] == 0:
+                    del self.products[product]

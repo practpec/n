@@ -21,7 +21,7 @@ from IA.ui import UI
 
 def main() -> None:
     problem = Problem('res/SaoVitor.json')
-    UI(problem.map, problem.test())
+    UI(problem.map, problem.solve())
 
 if __name__ == '__main__':
     main()
