@@ -16,12 +16,47 @@
 #
 # -------------------------------------------------------------------------------------------------
 
+import pickle
+import sys
+
 from IA.problem import Problem
 from IA.ui import UI
 
-def main() -> None:
-    problem = Problem('res/SaoVitor.json')
-    UI(problem.map, problem.solve())
+def usage() -> None:
+    print('''
+Usages:
+  python -m IA simulate problem.json [output.pickle]
+  python -m IA replay   problem.json simulation.pickle
+  python -m IA test     problem.json
+    ''', file = sys.stderr)
+
+    sys.exit(1)
+
+def main(argv: list[str]) -> None:
+    if len(argv) < 2:
+        usage()
+
+    if argv[0] == 'simulate' and len(argv) in [2, 3]:
+        problem = Problem(argv[1])
+        solution = problem.solve()
+
+        if len(argv) == 3:
+            with open(argv[2], 'wb') as f:
+                pickle.dump(solution, f)
+
+        UI(problem.map, solution)
+    elif argv[0] == 'replay' and len(argv) == 3:
+        problem = Problem(argv[1])
+        with open(argv[2], 'rb') as f:
+            solution = pickle.load(f)
+
+        UI(problem.map, solution)
+    elif argv[0] == 'test' and len(argv) == 2:
+        problem = Problem(argv[1])
+        solution = problem.test()
+        UI(problem.map, solution)
+    else:
+        usage()
 
 if __name__ == '__main__':
-    main()
+    main(sys.argv[1:])
