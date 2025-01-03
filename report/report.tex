@@ -549,6 +549,30 @@ entregas aos pontos de recolha, e a incapacidade de satisfazer um ponto de recol
 
 \section{Conclusão}
 
+Em suma, neste projeto, fomos capazes de abstrair um problema real, formalizando-o como um problemas
+de grafos. Implementámos diversos algoritmos de procura e adaptá-mo-los ao contexto em que foram
+utilizados, o que permitiu que os mesmos fossem melhor otimizados do que suas versões genéricas.
+Além disso, realizámos testes empíricos a comparar estes algoritmos, e chegámos a conclusões que
+corroboram os conhecimentos teóricos na área: entre os algoritmos testados, o A* foi
+consistentemente o mais veloz, visto que a adição de uma heurística ao algoritmo de Dijkstra permite
+diminuir significativamente o número de nós visitados. Ademais, também utilizámos este trabalho
+prático como oportunidade para implementar algoritmos lecionados na UC de Inteligência Artificial,
+mas nunca implementados nas aulas práticas, como o algoritmo genético que desenvolvemos para
+empacotamento. Por último, desenvolvemos uma UI que mostra o resultado do problema resolvido, e
+serve também como ferramenta pedagógica no ensino dos vários algoritmos de procura. Inclusive,
+ajudou-nos a depurar erros nas nossas implementações dos algoritmos de Dijkstra e A*.
+
+Apesar de serem várias as funcionalidades implementadas, existem possíveis pontos de melhoria no
+nosso trabalho. Em primeiro lugar, o algoritmo genético para empacotamento beneficiaria de alguma
+afinação, visto que há certos cenários de teste onde tem muita dificuldade a chegar à solução ótima
+por muito que se aumente o número de gerações, sinalizando que mudanças à função de \emph{fitness} e
+às operações de seleção, cruzamento e mutação possam ser bem-vindas. Ademais, seria interessante
+comparar a qualidade das soluções deste algoritmo com as soluções resultantes do uso estratégias
+gulosas bem conhecidas. Por último, também é possível melhorar o algoritmo que decide por que ordem
+os produtos são distribuídos pelos pontos de recolha, com a adição da possibilidade do mesmo veículo
+visitar mais do que um ponto de recolha, e a implementação de uma heurística / exploração de vários
+ramos para chegar a uma melhor solução do problema.
+
 \section{Bibliografia}
 \def\refname{}
 \vspace{-1.5cm}
