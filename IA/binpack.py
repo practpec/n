@@ -58,18 +58,18 @@ def bin_pack(vehicle_costs: dict[Vehicle, float],
             options = [parent1, parent2]
             return (random.choice(options), random.choice(options))
 
-        crossover_point = random.randint(1, len(parent1) - 1)
+        crossover_point = random.randrange(1, len(parent1))
         child1 = parent1[:crossover_point] + parent2[crossover_point:]
         child2 = parent2[:crossover_point] + parent1[crossover_point:]
         return child1, child2
 
     def mutate(individual: list[int]) -> list[int]:
         if random.random() < 0.5:
-            individual[random.randint(0, gene_length - 1)] = \
-                random.randint(-1, len(vehicles_list) - 1)
+            individual[random.randrange(0, gene_length)] = \
+                random.randrange(-1, len(vehicles_list))
         else:
             from_vehicle = individual[random.randint(0, gene_length - 1)]
-            to_vehicle = random.randint(-1, len(vehicles_list) - 1)
+            to_vehicle = random.randrange(-1, len(vehicles_list))
             individual = [ (to_vehicle if v == from_vehicle else v) for v in individual ]
 
         return individual
