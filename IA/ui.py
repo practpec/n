@@ -23,7 +23,7 @@ import pygame
 from IA.binpack import BinPackingResult
 from IA.graph import SearchResults
 from IA.map import Map, Point
-from IA.problem import Death, ProblemSolution
+from IA.problem import CompletedDelivery, Death, ProblemSolution
 
 WINDOW_WIDTH = 800
 WINDOW_HEIGHT = 600
@@ -40,6 +40,7 @@ class UI:
         self.generate_initial_projection(pmap)
 
         pygame.init()
+        self.happy = pygame.image.load('res/happy.bmp')
         self.skull = pygame.image.load('res/skull.bmp')
         self.window = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
         pygame.display.set_caption(self.seq[self.seq_position][0])
@@ -82,6 +83,8 @@ class UI:
                 self.render_search_results(seq_event)
             elif isinstance(seq_event, Death):
                 self.render_death(seq_event)
+            elif isinstance(seq_event, CompletedDelivery):
+                self.render_completed_delivery(seq_event)
 
             pygame.display.flip()
 
@@ -106,7 +109,6 @@ class UI:
                     lowest_distance_sq = dist_sq
 
             print(f'https://www.openstreetmap.org/node/{lowest_distance_node}')
-
         elif event.type == pygame.KEYDOWN:
             if event.key == pygame.K_LEFT:
                 self.translatex -= self.movement_unit / self.zoom
@@ -225,6 +227,12 @@ class UI:
                                  (255, 255, 255),
                                  (left, product_start),
                                  (left + 63, product_start))
+
+    def render_completed_delivery(self, death: CompletedDelivery) -> None:
+        x, y = self.point_to_screen(self.map.coordinates[death.node])
+        x -= 32
+        y -= 32
+        self.window.blit(self.happy, (x, y))
 
     def render_death(self, death: Death) -> None:
         x, y = self.point_to_screen(self.map.coordinates[death.node])

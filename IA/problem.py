@@ -32,7 +32,13 @@ from IA.graph import SearchAlgorithm, SearchResults
 class Death:
     node: int
 
-ProblemSolution = list[tuple[str, None | SearchResults | BinPackingResult | Death]]
+@dataclass
+class CompletedDelivery:
+    node: int
+
+ProblemSolution = list[
+    tuple[str, None | SearchResults | BinPackingResult | CompletedDelivery | Death]
+]
 
 class Problem:
     def __init__(self, filepath: str) -> None:
@@ -109,6 +115,7 @@ class Problem:
         ret: ProblemSolution = [('Press RETURN to continue', None)]
         current_time = 0.0
         waiting: dict[float, list[Vehicle]] = {}
+        arrivals: list[tuple[float, DeliveryTarget]] = []
 
         targets = [(t.time_limit, t) for t in self.map.delivery_targets]
         heapq.heapify(targets)
@@ -121,6 +128,7 @@ class Problem:
                             Death(target.node)))
                 continue
 
+            last_arrival = 0.0
             must_wait = False
             while target.products:
                 if must_wait or not self.map.distribution_center.vehicles:
@@ -129,6 +137,14 @@ class Problem:
 
                     current_time = min_time
                     must_wait = False
+
+                    for arrival_time, arrival_target in sorted(arrivals):
+                        if arrival_time <= current_time:
+                            time_fmt = self.format_time(arrival_time)
+                            title = f'{time_fmt}: Entrega a {arrival_target.name} concluída'
+                            ret.append((title, CompletedDelivery(arrival_target.node)))
+
+                            arrivals.remove((arrival_time, arrival_target))
 
                     for vehicle in new_vehicles:
                         if vehicle not in self.map.distribution_center.vehicles:
@@ -159,25 +175,36 @@ class Problem:
 
                 self.map.distribution_center.discount_bin_pack(binpack)
                 target.discount_bin_pack(binpack)
-                self.enqueue_vehicles(binpack, costs, current_time, waiting)
+                last_arrival = \
+                    max(self.enqueue_vehicles(binpack, costs, current_time, waiting), last_arrival)
 
+            if not target.products:
+                arrivals.append((last_arrival, target))
+
+        ret.append(('Simulation over', None))
         return ret
 
     def enqueue_vehicles(self,
                          binpack: BinPackingResult,
                          costs: dict[Vehicle, float],
                          current_time: float,
-                         waiting: dict[float, list[Vehicle]]) -> None:
+                         waiting: dict[float, list[Vehicle]]) -> float:
 
+        max_time = 0.0
         for vehicle, _ in binpack.results:
-            time_done = current_time + costs[vehicle] * 2 # * 2 for round trip
+            time_destination = current_time + costs[vehicle]
+            max_time = max(max_time, time_destination)
 
-            to_add = waiting.get(time_done)
+            time_center = current_time + costs[vehicle] * 2 # * 2 for round trip
+
+            to_add = waiting.get(time_center)
             if to_add is None:
                 to_add = []
-                waiting[time_done] = to_add
+                waiting[time_center] = to_add
 
             to_add.append(vehicle)
+
+        return max_time
 
     def has_new_vehicles_waiting(self, waiting: dict[float, list[Vehicle]]) -> bool:
         waiting_vehicles = set(itertools.chain(*waiting.values()))
