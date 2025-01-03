@@ -25,7 +25,7 @@ from bs4 import BeautifulSoup
 from perlin_noise import PerlinNoise
 import requests
 
-from IA.graph import Graph, SearchAlgorithm, SearchResults
+from IA.graph import CanPass, Graph, SearchAlgorithm, SearchResults
 from IA.structs import DeliveryTarget, DistributionCenter, Vehicle
 
 EARTH_RADIUS = 6378137.0 # meters
@@ -144,12 +144,12 @@ class Map(Graph):
             weather = self.weather[(source, target)]
             return vehicle.calculate_travel_time(distance, weather)
 
-        def can_pass(source: int, target: int) -> bool:
+        def can_pass(source: int, target: int) -> CanPass:
             if self.enable_weather and random.random() < 0.001:
                 self.weather[(source, target)] = min(vehicle.worst_weather + 0.01, 1.0)
-                return False
+                return CanPass.NO_WITH_FUEL_LOSS
 
-            return self.weather[(source, target)] <= vehicle.worst_weather
+            return CanPass.YES if self.weather[(source, target)] <= vehicle.worst_weather else CanPass.NO
 
         def limit_cost(source: int, target: int) -> float:
             distance = self.edges[source][target]
