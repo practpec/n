@@ -3,6 +3,8 @@
 UMinho's Artificial Intelligence 2024/25 assignment. See [Assignment.pdf](Assignment.pdf) for more
 details.
 
+Grade: 18 / 20 🫠
+
 ### Authors
 
  - Ana Cerqueira (A104188)
