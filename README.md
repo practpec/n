@@ -1,7 +1,11 @@
 # IA
 
-UMinho's Artificial Intelligence 2024/25 assignment. See [Assignment.pdf](Assignment.pdf) for more
-details.
+System to manage distribution of goods during a natural disaster, with search algorithms for maps
+and a genetic algorithm for bin-packing. UMinho's Artificial Intelligence 2024/25 assignment. See
+[Assignment.pdf](Assignment.pdf) for more details.
+
+![Map with highlighted locations](report/res/PontosImportantes.png)
+![Bin packing results](report/res/Empacotamento.png)
 
 Grade: 18 / 20 🫠
 
